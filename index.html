@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestor de Voluntariado · Desayunos Hospital del Niño</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="brand__logo">🤝</span>
+        <div class="brand__text">
+          <strong>Voluntariado</strong>
+          <small>Hospital del Niño</small>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <a href="#/desayunos" data-route="desayunos" class="nav__item">
+          <span class="nav__icon">🥐</span> Desayunos
+        </a>
+        <a href="#/inventario" data-route="inventario" class="nav__item">
+          <span class="nav__icon">📦</span> Inventario
+        </a>
+        <a href="#/miembros" data-route="miembros" class="nav__item">
+          <span class="nav__icon">👥</span> Miembros y equipos
+        </a>
+        <a href="#/precios" data-route="precios" class="nav__item">
+          <span class="nav__icon">💲</span> Buscar precios
+          <span class="nav__badge">Próximamente</span>
+        </a>
+      </nav>
+
+      <div class="sidebar__footer">
+        <button class="btn btn--ghost btn--sm" id="exportBtn" title="Descargar copia de seguridad">⬇ Exportar datos</button>
+        <button class="btn btn--ghost btn--sm" id="importBtn" title="Restaurar desde un archivo">⬆ Importar</button>
+        <input type="file" id="importFile" accept="application/json" hidden />
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn" id="menuToggle" aria-label="Abrir menú">☰</button>
+        <div class="topbar__title">
+          <h1 id="viewTitle">Desayunos</h1>
+          <p id="viewSubtitle">Gestión de desayunos en el Hospital del Niño</p>
+        </div>
+        <div class="topbar__actions" id="topbarActions"></div>
+      </header>
+
+      <section class="content" id="view"></section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal__head">
+        <h2 id="modalTitle"></h2>
+        <button class="icon-btn" id="modalClose" aria-label="Cerrar">✕</button>
+      </div>
+      <form class="modal__body" id="modalForm" novalidate></form>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" id="modalCancel" type="button">Cancelar</button>
+        <button class="btn btn--primary" id="modalSave" type="submit" form="modalForm">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
