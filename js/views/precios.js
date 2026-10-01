@@ -10,17 +10,17 @@ export function renderPrecios(root) {
       <div class="coming-soon__grid">
         <div class="feature">
           <span>🛒</span>
-          <h4>Comparar tiendas</h4>
+          <h3>Comparar tiendas</h3>
           <p>Mismo producto, varios precios, en un solo lugar.</p>
         </div>
         <div class="feature">
           <span>📊</span>
-          <h4>Historial de precios</h4>
+          <h3>Historial de precios</h3>
           <p>Ver cómo ha variado el costo de cada producto.</p>
         </div>
         <div class="feature">
           <span>📝</span>
-          <h4>Lista de compras</h4>
+          <h3>Lista de compras</h3>
           <p>Generar la lista del equipo de compras con el presupuesto estimado.</p>
         </div>
       </div>

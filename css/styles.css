@@ -8,7 +8,7 @@
   --surface-2: #f8fafc;
   --border: #e3e8ef;
   --text: #1c2434;
-  --muted: #6b7688;
+  --muted: #5b6677;
   --primary: #0f766e;
   --primary-strong: #0b5d56;
   --primary-soft: #e0f2f1;
@@ -48,6 +48,18 @@ p { margin: 0; }
 ul { margin: 0; padding: 0; list-style: none; }
 small { font-size: .8em; }
 .muted { color: var(--muted); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* ---------- Layout ---------- */
 
@@ -603,7 +615,7 @@ small { font-size: .8em; }
   gap: 6px;
 }
 .feature span { font-size: 24px; }
-.feature h4 { font-size: 15px; }
+.feature h3 { font-size: 15px; }
 .feature p { font-size: 13.5px; color: var(--muted); }
 
 /* ---------- Modal ---------- */

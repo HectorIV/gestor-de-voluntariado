@@ -24,7 +24,7 @@ export function renderInventario(root) {
 
     <div class="toolbar">
       <input class="input input--search" id="invSearch" type="search" placeholder="🔍 Buscar producto…" value="${esc(search)}" />
-      <select class="input input--filter" id="invFilter">
+      <select class="input input--filter" id="invFilter" aria-label="Filtrar por categoría">
         <option value="todas">Todas las categorías</option>
         ${categories.map((c) => `<option value="${esc(c)}" ${c === categoryFilter ? 'selected' : ''}>${esc(c)}</option>`).join('')}
       </select>

@@ -49,6 +49,7 @@ function render() {
 
   titleEl.textContent = route.title;
   subtitleEl.textContent = route.subtitle;
+  document.getElementById('srHeading').textContent = route.title;
   document.title = `${route.title} · Gestor de Voluntariado`;
 
   document.querySelectorAll('#nav .nav__item').forEach((item) => {

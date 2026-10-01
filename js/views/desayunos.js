@@ -261,10 +261,10 @@ async function openEventForm(id) {
               .map(
                 (it, i) => `
               <div class="item-row" data-i="${i}">
-                <select class="input" data-field="productId">
+                <select class="input" data-field="productId" aria-label="Producto necesario">
                   ${inventory.map((p) => `<option value="${p.id}" ${p.id === it.productId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
                 </select>
-                <input class="input input--num" type="number" min="0" step="any" data-field="qty" value="${esc(it.qty)}" />
+                <input class="input input--num" type="number" min="0" step="any" data-field="qty" value="${esc(it.qty)}" aria-label="Cantidad" />
                 <button type="button" class="icon-btn" data-remove="${i}" title="Quitar">🗑️</button>
               </div>`
               )
