@@ -109,3 +109,43 @@ document.getElementById('importFile').addEventListener('change', (e) => {
 /* Estado inicial + re-render ante cambios del store */
 store.subscribe(() => render());
 render();
+
+/* ---------- PWA: instalación y uso sin conexión ---------- */
+
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('sw.js')
+      .catch((err) => console.warn('Service worker no disponible:', err));
+  });
+}
+
+let installPrompt = null;
+const installBtn = document.getElementById('installBtn');
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  installBtn.hidden = false;
+});
+
+installBtn.addEventListener('click', async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = null;
+  installBtn.hidden = true;
+});
+
+window.addEventListener('appinstalled', () => {
+  installBtn.hidden = true;
+  toast('App instalada en el dispositivo ✅');
+});
+
+const offlineHint = document.getElementById('offlineHint');
+function updateOnlineState() {
+  offlineHint.hidden = navigator.onLine;
+}
+window.addEventListener('online', updateOnlineState);
+window.addEventListener('offline', updateOnlineState);
+updateOnlineState();

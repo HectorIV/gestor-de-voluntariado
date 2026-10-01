@@ -137,6 +137,16 @@ small { font-size: .8em; }
 
 .sidebar__footer .btn--ghost { color: #a9c4c1; justify-content: flex-start; }
 .sidebar__footer .btn--ghost:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.sidebar__footer .btn--primary { background: var(--primary); }
+
+.sidebar__hint {
+  font-size: 11.5px;
+  color: #f3c98b;
+  background: rgba(245, 158, 11, .14);
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin: 0;
+}
 
 .main { display: flex; flex-direction: column; min-width: 0; }
 

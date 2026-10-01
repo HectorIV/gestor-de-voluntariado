@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestor de Voluntariado · Desayunos Hospital del Niño</title>
+  <meta name="description" content="Gestión de desayunos, inventario y miembros del voluntariado del Hospital del Niño. Funciona sin conexión." />
+  <meta name="theme-color" content="#0f766e" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icons/favicon-64.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Voluntariado" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -37,9 +45,11 @@
       </nav>
 
       <div class="sidebar__footer">
+        <button class="btn btn--primary btn--sm" id="installBtn" hidden>📱 Instalar app</button>
         <button class="btn btn--ghost btn--sm" id="exportBtn" title="Descargar copia de seguridad">⬇ Exportar datos</button>
         <button class="btn btn--ghost btn--sm" id="importBtn" title="Restaurar desde un archivo">⬆ Importar</button>
         <input type="file" id="importFile" accept="application/json" hidden />
+        <p class="sidebar__hint" id="offlineHint" hidden>📴 Sin conexión · los datos se guardan en este dispositivo</p>
       </div>
     </aside>
 

@@ -13,6 +13,25 @@ python -m http.server 8777
 # y abrir http://127.0.0.1:8777/index.html
 ```
 
+En producción está publicada en **https://hectoriv.github.io/gestor-de-voluntariado/**
+
+## Instalar como app (PWA) y modo sin conexión
+
+La app es una **PWA**: se puede instalar en el ordenador o en el móvil y **funciona sin
+internet**.
+
+- **Instalar:** en Chrome/Edge aparece el botón **📱 Instalar app** en el menú lateral
+  (o el candado/instalar de la barra de direcciones). En iPhone: *Compartir → Añadir a
+  pantalla de inicio*.
+- **Sin conexión:** el `sw.js` (service worker) guarda la app en caché; si no hay
+  internet se muestra un aviso naranja 📴 en el menú y todo sigue funcionando.
+- **Los datos se guardan** en el navegador (`localStorage`), también sin conexión, y
+  sobreviven a cerrar la app. No se sincronizan entre dispositivos: usa **⬇ Exportar /
+  ⬆ Importar** para pasarlos.
+- Al cambiar la app, sube la versión en `sw.js` (`const VERSION = 'v3'`, …) para que
+  los usuarios carguen la versión nueva sin cachés viejas.
+- Los iconos se generan con `python tools/generate_icons.py` (requiere `pip install pillow`).
+
 Los datos se guardan automáticamente en el `localStorage` del navegador.
 En el menú lateral hay botones para **exportar** una copia de seguridad en JSON e **importarla**.
 
@@ -57,9 +76,13 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
 
 ```
 index.html          · maquetación, menú lateral y modal
+manifest.json       · manifiesto de la PWA (nombre, iconos, tema)
+sw.js               · service worker: caché y funcionamiento sin conexión
+icons/              · iconos (192, 512, maskable, apple-touch, favicon)
 css/styles.css      · estilos, diseño responsive
-js/app.js           · rutas (#/desayunos, #/inventario…) y exportar/importar
+js/app.js           · rutas (#/desayunos, #/inventario…), PWA y exportar/importar
 js/store.js         · estado + guardado en localStorage
 js/ui.js            · utilidades (modal, toast, campos, formato)
 js/views/*.js       · vistas de cada sección (desayunos, inventario, miembros, gráficas, precios)
+tools/              · script que genera los iconos
 ```
