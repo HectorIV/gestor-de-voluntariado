@@ -40,6 +40,15 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
 - Miembros con nombre, equipo/rol, teléfono, correo y notas.
 - Cada equipo muestra su lista de miembros.
 
+### 📊 Gráficas (retroalimentación)
+- Tarjetas de resumen: desayunos, personas servidas, voluntarios y stock bajo.
+- **Desayunos por mes** y **Personas atendidas por mes** (barras, con selector de
+  periodo: 3 / 6 / 12 meses o todo).
+- **Estado de los desayunos** en dona (realizado, planificado, en curso, cancelado).
+- **Miembros por equipo** y **Productos más usados** (barras horizontales).
+- **Stock actual** con la línea vertical marcando la cantidad mínima de cada producto.
+- Todo con datos reales de la app: si no hay nada registrado, muestra un aviso.
+
 ### 💲 Buscar precios (futuro)
 - Sección reservada para comparar precios en tiendas. Es la parte más compleja
   (hay que extraer precios de las páginas de cada tienda), así que queda para después.
@@ -52,5 +61,5 @@ css/styles.css      · estilos, diseño responsive
 js/app.js           · rutas (#/desayunos, #/inventario…) y exportar/importar
 js/store.js         · estado + guardado en localStorage
 js/ui.js            · utilidades (modal, toast, campos, formato)
-js/views/*.js       · vistas de cada sección
+js/views/*.js       · vistas de cada sección (desayunos, inventario, miembros, gráficas, precios)
 ```

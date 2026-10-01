@@ -3,6 +3,7 @@ import { toast, confirmDialog } from './ui.js';
 import { renderDesayunos } from './views/desayunos.js';
 import { renderInventario } from './views/inventario.js';
 import { renderMiembros } from './views/miembros.js';
+import { renderGraficas } from './views/graficas.js';
 import { renderPrecios } from './views/precios.js';
 
 const ROUTES = {
@@ -20,6 +21,11 @@ const ROUTES = {
     title: 'Miembros y equipos',
     subtitle: 'Quién compra, elabora, transporta y reparte',
     render: renderMiembros,
+  },
+  graficas: {
+    title: 'Gráficas',
+    subtitle: 'Retroalimentación gráfica de la actividad',
+    render: renderGraficas,
   },
   precios: {
     title: 'Buscar precios',

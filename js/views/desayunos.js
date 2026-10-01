@@ -26,6 +26,7 @@ export function renderDesayunos(root) {
 
     <div class="toolbar">
       <span class="toolbar__hint">Hospital del Niño · gestión de desayunos</span>
+      <a class="btn btn--ghost btn--sm" href="#/graficas">📊 Ver gráficas</a>
       <button class="btn btn--primary" id="addEvent">＋ Nuevo desayuno</button>
     </div>
 
