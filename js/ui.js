@@ -33,6 +33,54 @@ export function formatDate(iso) {
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+/** 2026-10-01 → 01/10/2026 */
+export function formatDateShort(iso) {
+  if (!iso) return 'sin fecha';
+  const [y, m, d] = iso.split('-');
+  return y && m && d ? `${d}/${m}/${y}` : iso;
+}
+
+/** Copia texto al portapapeles (con respaldo para contextos no seguros). */
+export async function copyText(text, okMessage = 'Copiado al portapapeles ✅') {
+  const fallback = () => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  };
+
+  try {
+    let done = false;
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        done = true;
+      } catch {
+        done = fallback();
+      }
+    } else {
+      done = fallback();
+    }
+    if (!done) throw new Error('no se pudo copiar');
+    toast(okMessage);
+    return true;
+  } catch (err) {
+    console.error('No se pudo copiar:', err);
+    toast('No se pudo copiar 😕 (prueba a seleccionar y copiar a mano)', 'error');
+    return false;
+  }
+}
+
 export function formatNumber(n) {
   const num = Number(n);
   if (Number.isNaN(num)) return '0';
@@ -109,7 +157,7 @@ export function openModal({ title, body, saveLabel = 'Guardar', onSubmit, onMoun
 
 /* ---------- Formularios ---------- */
 
-export function field({ label, name, type = 'text', value = '', required = false, placeholder = '', min, options, hint, className = '' }) {
+export function field({ label, name, type = 'text', value = '', required = false, placeholder = '', min, options, hint, className = '', list }) {
   let control;
   if (type === 'select') {
     const opts = (options || [])
@@ -125,8 +173,9 @@ export function field({ label, name, type = 'text', value = '', required = false
     control = `<textarea class="input" id="f-${name}" name="${name}" rows="3" placeholder="${esc(placeholder)}">${esc(value)}</textarea>`;
   } else {
     const minAttr = min !== undefined && min !== null ? `min="${esc(min)}"` : '';
+    const listAttr = list ? `list="${esc(list)}"` : '';
     control = `<input class="input" id="f-${name}" name="${name}" type="${type}" value="${esc(value)}"
-      placeholder="${esc(placeholder)}" ${minAttr} ${required ? 'required' : ''} />`;
+      placeholder="${esc(placeholder)}" ${minAttr} ${listAttr} ${required ? 'required' : ''} />`;
   }
 
   return `

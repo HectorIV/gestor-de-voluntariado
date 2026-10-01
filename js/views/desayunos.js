@@ -1,5 +1,5 @@
 import { store, productById, memberById, teamById, upcomingEvents, lowStockItems } from '../store.js';
-import { esc, toast, openModal, field, grid, emptyState, statCard, formatDate, formatNumber, confirmDialog } from '../ui.js';
+import { esc, toast, openModal, field, grid, emptyState, statCard, formatDate, formatDateShort, formatNumber, confirmDialog, copyText } from '../ui.js';
 
 const STATUS = {
   planificado: { label: 'Planificado', tone: 'info' },
@@ -44,6 +44,9 @@ export function renderDesayunos(root) {
   root.querySelector('#addEventEmpty')?.addEventListener('click', () => openEventForm());
 
   root.querySelectorAll('[data-edit]').forEach((b) => b.addEventListener('click', () => openEventForm(b.dataset.edit)));
+  root.querySelectorAll('[data-copy]').forEach((b) =>
+    b.addEventListener('click', () => copyText(eventText(b.dataset.copy), 'Desayuno copiado ✅'))
+  );
   root.querySelectorAll('[data-delete]').forEach((b) =>
     b.addEventListener('click', () => {
       const ev = events.find((e) => e.id === b.dataset.delete);
@@ -86,6 +89,46 @@ export function renderDesayunos(root) {
   );
 }
 
+/* ---------- Copiar como texto (WhatsApp, etc.) ---------- */
+
+function eventText(id) {
+  const ev = store.state.events.find((e) => e.id === id);
+  if (!ev) return '';
+  const status = (STATUS[ev.status] || STATUS.planificado).label;
+  const lines = [
+    `🥐 *${ev.title}*`,
+    `📅 ${formatDateShort(ev.date)} · 🏥 ${ev.area || 'área por definir'}`,
+    `🍽 ${formatNumber(ev.people || 0)} personas · Estado: ${status}`,
+  ];
+  if (ev.notes) lines.push(`📝 ${ev.notes}`);
+
+  const items = ev.items || [];
+  if (items.length) {
+    lines.push('', '*📦 Productos:*');
+    items.forEach((it) => {
+      const p = productById(it.productId);
+      lines.push(`• ${p ? p.name : 'producto eliminado'}: ${formatNumber(it.qty)} ${p ? p.unit || 'u.' : ''}`.trimEnd());
+    });
+  }
+
+  const memberIds = ev.memberIds || [];
+  if (memberIds.length) {
+    lines.push('', '*👥 Equipo:*');
+    store.state.teams.forEach((t) => {
+      const names = memberIds
+        .map(memberById)
+        .filter(Boolean)
+        .filter((m) => m.teamId === t.id);
+      if (names.length) lines.push(`• ${t.name}: ${names.map((m) => m.name).join(', ')}`);
+    });
+    const orphan = memberIds.map(memberById).filter(Boolean).filter((m) => !teamById(m.teamId));
+    if (orphan.length) lines.push(`• Sin equipo: ${orphan.map((m) => m.name).join(', ')}`);
+  }
+
+  if (ev.deducted) lines.push('', '✅ Descontado del inventario');
+  return lines.join('\n');
+}
+
 function eventCard(ev) {
   const status = STATUS[ev.status] || STATUS.planificado;
   const items = (ev.items || []).map((it) => {
@@ -118,6 +161,7 @@ function eventCard(ev) {
           <h3>${esc(ev.title)}</h3>
         </div>
         <div class="row-actions">
+          <button class="icon-btn" data-copy="${ev.id}" title="Copiar detalle">📋</button>
           <button class="icon-btn" data-edit="${ev.id}" title="Editar">✏️</button>
           <button class="icon-btn" data-delete="${ev.id}" title="Eliminar">🗑️</button>
         </div>

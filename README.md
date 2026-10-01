@@ -45,19 +45,30 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
 - Estados (chips): Planificado · En curso · Realizado · Cancelado.
 - Botón **Descontar del inventario**: baja las cantidades usadas (con aviso si no hay stock)
   y **Devolver al inventario** si te equivocaste.
+- **📋 Copiar detalle**: el desayuno en texto plano (fecha, área, personas, productos y
+  equipo por grupos) listo para pegar en WhatsApp.
 
 ### 📦 Inventario
 - Producto, categoría, cantidad actual, unidad, cantidad mínima y notas.
 - Categorías: Alimentos, Servilletas y desechables, Guantes e higiene,
   Equipo (cafeteras, ollas), Limpieza, Otros.
+- **🧺 Lista típica**: alta masiva con lo de siempre (jugo, café, té, pan de molde,
+  queso, mantequilla, jamón, galletas, ziplos medianos y grandes, servilletas, vasos,
+  platos, guantes, cafetera, termo, hielo). Se marcan solo los que quieras; los que ya
+  tienes aparecen como “ya está”. Entra con cantidad 0 y su mínimo, para verlo en “Reponer”.
+- Al crear un producto, el nombre autocompleta categoría, unidad y mínimo (lista de sugerencias).
 - Botones `−` / `＋` para ajustar cantidades rápidamente.
 - Aviso automático **"Reponer"** cuando la cantidad llega a la mínima.
 - Búsqueda por nombre y filtro por categoría.
+- **📋 Copiar lista** / **🔴 Faltantes**: copia el inventario como texto con formato
+  de WhatsApp (negritas con *asteriscos*) para pegarlo en el grupo.
 
 ### 👥 Miembros y equipos
 - Equipos por defecto: compras, elaboración, transporte y reparto… y puedes **crear los tuyos**.
 - Miembros con nombre, equipo/rol, teléfono, correo y notas.
 - Cada equipo muestra su lista de miembros.
+- **📋 Copiar equipos** (todos los grupos con sus miembros) o el icono 📋 de cada tarjeta
+  para copiar solo ese equipo y pegarlo en WhatsApp.
 
 ### 📊 Gráficas (retroalimentación)
 - Tarjetas de resumen: desayunos, personas servidas, voluntarios y stock bajo.

@@ -1,5 +1,6 @@
 import { store, productById, lowStockItems } from '../store.js';
-import { esc, toast, openModal, field, grid, emptyState, statCard, formatNumber, confirmDialog } from '../ui.js';
+import { esc, toast, openModal, field, grid, emptyState, statCard, formatNumber, confirmDialog, copyText } from '../ui.js';
+import { SUGGESTED, suggestedByName } from '../sugerencias.js';
 
 let search = '';
 let categoryFilter = 'todas';
@@ -28,6 +29,11 @@ export function renderInventario(root) {
         <option value="todas">Todas las categorías</option>
         ${categories.map((c) => `<option value="${esc(c)}" ${c === categoryFilter ? 'selected' : ''}>${esc(c)}</option>`).join('')}
       </select>
+      <button class="btn btn--secondary" id="addTypical">🧺 Lista típica</button>
+      <div class="toolbar__copy">
+        <button class="btn btn--ghost btn--sm" id="copyInv" title="Copiar todo el inventario como texto">📋 Copiar lista</button>
+        <button class="btn btn--ghost btn--sm" id="copyMissing" title="Copiar solo lo que hay que comprar">🔴 Faltantes</button>
+      </div>
       <button class="btn btn--primary" id="addProduct">＋ Añadir producto</button>
     </div>
 
@@ -37,8 +43,13 @@ export function renderInventario(root) {
           title: inventory.length ? 'Sin resultados' : 'El inventario está vacío',
           text: inventory.length
             ? 'Prueba con otra búsqueda o categoría.'
-            : 'Añade comida, servilletas, guantes, cafeteras… todo lo que necesite el desayuno.',
-          action: inventory.length ? '' : '<button class="btn btn--primary" id="addProductEmpty">＋ Añadir producto</button>',
+            : 'Añade comida, servilletas, guantes, cafeteras… o empieza con la lista de productos típicos de los desayunos.',
+          action: inventory.length
+            ? ''
+            : `<div class="empty__actions">
+                <button class="btn btn--secondary" id="addTypicalEmpty">🧺 Lista típica</button>
+                <button class="btn btn--primary" id="addProductEmpty">＋ Añadir producto</button>
+              </div>`,
         })
       : `<div class="table-wrap">
           <table class="table">
@@ -80,6 +91,14 @@ export function renderInventario(root) {
 
   root.querySelector('#addProduct')?.addEventListener('click', () => openProductForm());
   root.querySelector('#addProductEmpty')?.addEventListener('click', () => openProductForm());
+  root.querySelector('#addTypical')?.addEventListener('click', () => openTypicalList());
+  root.querySelector('#addTypicalEmpty')?.addEventListener('click', () => openTypicalList());
+  root.querySelector('#copyInv')?.addEventListener('click', () => copyText(inventoryText(false)));
+  root.querySelector('#copyMissing')?.addEventListener('click', () => {
+    const text = inventoryText(true);
+    if (!text) return toast('No hay nada pendiente de comprar 🎉', 'ok');
+    copyText(text, 'Lista de faltantes copiada ✅');
+  });
 
   root.querySelectorAll('[data-edit]').forEach((btn) =>
     btn.addEventListener('click', () => openProductForm(btn.dataset.edit))
@@ -138,19 +157,40 @@ async function openProductForm(id) {
   const { categories } = store.state;
   const existing = id ? productById(id) : null;
 
-  const body = grid(
-    'form-grid',
-    field({ label: 'Nombre del producto', name: 'name', required: true, value: existing?.name || '', placeholder: 'Ej. Servilletas de papel' }) +
-      field({ label: 'Categoría', name: 'category', type: 'select', value: existing?.category || categories[0], options: categories }) +
-      field({ label: 'Cantidad actual', name: 'qty', type: 'number', min: 0, required: true, value: existing ? existing.qty : 0 }) +
-      field({ label: 'Unidad', name: 'unit', placeholder: 'uds., paquetes, litros…', value: existing?.unit || 'uds.', hint: 'Cómo se cuenta' }) +
-      field({ label: 'Cantidad mínima', name: 'min', type: 'number', min: 0, value: existing ? existing.min || 0 : 0, hint: 'Se marcará como "Reponer" al llegar a este nivel' }) +
-      field({ label: 'Notas', name: 'notes', placeholder: 'Marca, tamaño, dónde se guarda…', value: existing?.notes || '' })
-  );
+  const body =
+    grid(
+      'form-grid',
+      field({
+        label: 'Nombre del producto',
+        name: 'name',
+        required: true,
+        value: existing?.name || '',
+        placeholder: 'Ej. Servilletas de papel',
+        list: 'sugerenciasNombre',
+      }) +
+        field({ label: 'Categoría', name: 'category', type: 'select', value: existing?.category || categories[0], options: categories }) +
+        field({ label: 'Cantidad actual', name: 'qty', type: 'number', min: 0, required: true, value: existing ? existing.qty : 0 }) +
+        field({ label: 'Unidad', name: 'unit', placeholder: 'uds., paquetes, litros…', value: existing?.unit || 'uds.', hint: 'Cómo se cuenta' }) +
+        field({ label: 'Cantidad mínima', name: 'min', type: 'number', min: 0, value: existing ? existing.min || 0 : 0, hint: 'Se marcará como "Reponer" al llegar a este nivel' }) +
+        field({ label: 'Notas', name: 'notes', placeholder: 'Marca, tamaño, dónde se guarda…', value: existing?.notes || '' })
+    ) +
+    `<datalist id="sugerenciasNombre">${SUGGESTED.map((s) => `<option value="${esc(s.name)}"></option>`).join('')}</datalist>`;
 
   const saved = await openModal({
     title: existing ? 'Editar producto' : 'Añadir producto',
     body,
+    onMount: (frm) => {
+      if (existing) return;
+      const nameInput = frm.querySelector('#f-name');
+      const autofill = () => {
+        const s = suggestedByName(nameInput.value);
+        if (!s) return;
+        if (s.category) frm.querySelector('#f-category').value = s.category;
+        frm.querySelector('#f-unit').value = s.unit;
+        frm.querySelector('#f-min').value = s.min;
+      };
+      nameInput.addEventListener('change', autofill);
+    },
     onSubmit: (data) => {
       const name = (data.name || '').trim();
       if (!name) {
@@ -181,6 +221,128 @@ async function openProductForm(id) {
         }
       });
       toast(existing ? 'Producto actualizado' : 'Producto añadido');
+      return true;
+    },
+  });
+
+  if (saved) renderInventario(document.getElementById('view'));
+}
+
+/* ---------- Copiar como texto (WhatsApp, etc.) ---------- */
+
+function inventoryText(onlyMissing) {
+  const { inventory, categories } = store.state;
+  const today = new Date().toLocaleDateString('es-ES');
+  const lines = [];
+
+  if (onlyMissing) {
+    const low = inventory.filter((p) => Number(p.qty) <= Number(p.min || 0));
+    if (!low.length) return '';
+    lines.push(`🔴 *FALTAN COMPRAR* (${today})`);
+    low.forEach((p) => {
+      lines.push(`• ${p.name}: hay ${formatNumber(p.qty)} de ${formatNumber(p.min)} ${p.unit || 'u.'}`);
+    });
+    return lines.join('\n');
+  }
+
+  lines.push(`📦 *INVENTARIO · Desayunos Hospital del Niño* (${today})`);
+  categories.forEach((c) => {
+    const items = inventory.filter((p) => p.category === c);
+    if (!items.length) return;
+    lines.push('');
+    lines.push(`*${c.toUpperCase()}*`);
+    items.forEach((p) => {
+      const falta = Number(p.qty) <= Number(p.min || 0) ? '  ⚠️ reponer' : '';
+      lines.push(`• ${p.name}: ${formatNumber(p.qty)} ${p.unit || 'u.'}${falta}`);
+    });
+  });
+  return lines.join('\n');
+}
+
+/* ---------- Lista típica (alta masiva de productos habituales) ---------- */
+
+async function openTypicalList() {
+  const { inventory, categories } = store.state;
+  const lower = new Set(inventory.map((p) => p.name.trim().toLowerCase()));
+  const groups = categories.filter((c) => SUGGESTED.some((s) => s.category === c));
+
+  const body = `
+    <p class="modal__intro">
+      Marca lo que quieras añadir: jugo, café, té, pan de molde, queso, mantequilla, jamón, galletas,
+      ziplos, servilletas y el resto de lo habitual. Los que ya tienes en el inventario aparecen
+      como <strong>ya está</strong>. Se guardan con cantidad <strong>0</strong> y su mínimo sugerido,
+      así los verás en “Reponer” hasta que anotes lo que tengas.
+    </p>
+    <div class="modal__quick">
+      <button type="button" class="btn btn--ghost btn--sm" data-check="all">Marcar todas</button>
+      <button type="button" class="btn btn--ghost btn--sm" data-check="none">Ninguna</button>
+      <span class="modal__count" id="sugCount"></span>
+    </div>
+    ${groups
+      .map((c) => {
+        const items = SUGGESTED.filter((s) => s.category === c);
+        return `
+        <fieldset class="team-group">
+          <legend>${esc(c)}</legend>
+          ${items
+            .map((s) => {
+              const exists = lower.has(s.name.trim().toLowerCase());
+              return `
+              <label class="check ${exists ? 'is-off' : ''}">
+                <input type="checkbox" name="sug" value="${esc(s.name)}" ${exists ? 'disabled' : 'checked'} />
+                <span class="check__name">${esc(s.name)}</span>
+                <span class="check__meta">${exists ? '<span class="tag">ya está</span>' : `mín. ${formatNumber(s.min)} ${esc(s.unit)}`}</span>
+              </label>`;
+            })
+            .join('')}
+        </fieldset>`;
+      })
+      .join('')}`;
+
+  const saved = await openModal({
+    title: 'Lista típica de productos',
+    body,
+    saveLabel: 'Añadir seleccionados',
+    onMount: (frm) => {
+      const counter = frm.querySelector('#sugCount');
+      const refresh = () => {
+        const n = frm.querySelectorAll('input[name=sug]:checked').length;
+        counter.textContent = `${n} seleccionado${n === 1 ? '' : 's'}`;
+      };
+      frm.addEventListener('change', refresh);
+      frm.querySelectorAll('[data-check]').forEach((b) =>
+        b.addEventListener('click', () => {
+          const check = b.dataset.check === 'all';
+          frm.querySelectorAll('input[name=sug]:not(:disabled)').forEach((i) => {
+            i.checked = check;
+          });
+          refresh();
+        })
+      );
+      refresh();
+    },
+    onSubmit: (data, frm) => {
+      const names = [...frm.querySelectorAll('input[name=sug]:checked')].map((i) => i.value);
+      if (!names.length) {
+        toast('Marca al menos un producto', 'error');
+        return false;
+      }
+      store.update((s) => {
+        names.forEach((name) => {
+          const sug = suggestedByName(name);
+          if (!sug) return;
+          s.inventory.push({
+            id: store.uid(),
+            name: sug.name,
+            category: sug.category,
+            qty: 0,
+            unit: sug.unit,
+            min: sug.min,
+            notes: '',
+          });
+        });
+      });
+      toast(`${names.length} producto${names.length === 1 ? '' : 's'} añadido${names.length === 1 ? '' : 's'}`);
       return true;
     },
   });

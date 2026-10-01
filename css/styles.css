@@ -263,6 +263,7 @@ small { font-size: .8em; }
   flex-wrap: wrap;
 }
 .toolbar__hint { color: var(--muted); font-size: 13.5px; margin-right: auto; }
+.toolbar__copy { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
 .toolbar .btn--primary { margin-left: auto; }
 .toolbar__hint + .btn--primary { margin-left: 0; }
 
@@ -340,7 +341,31 @@ small { font-size: .8em; }
   font-size: 14px;
   cursor: pointer;
 }
-.check input { accent-color: var(--primary); width: 16px; height: 16px; }
+.check input { accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; }
+.check__name { flex: 1; min-width: 0; }
+.check__meta { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.check.is-off { opacity: .55; }
+.check.is-off .check__name { text-decoration: line-through; }
+
+.modal__intro {
+  font-size: 13.5px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+}
+
+.modal__quick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.modal__count { margin-left: auto; font-size: 12.5px; color: var(--primary-strong); font-weight: 700; }
+
+.empty__actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 
 /* ---------- Tablas ---------- */
 

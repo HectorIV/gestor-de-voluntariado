@@ -1,5 +1,5 @@
 import { store, memberById, teamById, teamMembers } from '../store.js';
-import { esc, toast, openModal, field, grid, emptyState, confirmDialog } from '../ui.js';
+import { esc, toast, openModal, field, grid, emptyState, confirmDialog, copyText } from '../ui.js';
 
 let memberSearch = '';
 
@@ -15,7 +15,10 @@ export function renderMiembros(root) {
           <h2>Equipos</h2>
           <p class="muted">Crea los equipos que hagan falta y asígnales a cada miembro.</p>
         </div>
-        <button class="btn btn--primary" id="addTeam">＋ Añadir equipo</button>
+        <div class="panel__head-actions">
+          <button class="btn btn--ghost btn--sm" id="copyTeams" title="Copiar todos los equipos y miembros">📋 Copiar equipos</button>
+          <button class="btn btn--primary" id="addTeam">＋ Añadir equipo</button>
+        </div>
       </div>
       <div class="team-grid">
         ${teams.length === 0
@@ -28,6 +31,7 @@ export function renderMiembros(root) {
                   <div class="team-card__top">
                     <h3>${esc(t.name)}</h3>
                     <div class="row-actions">
+                      <button class="icon-btn" data-copy-team="${t.id}" title="Copiar este equipo">📋</button>
                       <button class="icon-btn" data-edit-team="${t.id}" title="Renombrar">✏️</button>
                       <button class="icon-btn" data-del-team="${t.id}" title="Eliminar">🗑️</button>
                     </div>
@@ -98,6 +102,10 @@ export function renderMiembros(root) {
   });
 
   root.querySelector('#addTeam')?.addEventListener('click', () => openTeamForm());
+  root.querySelector('#copyTeams')?.addEventListener('click', () => copyText(allTeamsText(), 'Equipos copiados ✅'));
+  root.querySelectorAll('[data-copy-team]').forEach((b) =>
+    b.addEventListener('click', () => copyText(teamText(b.dataset.copyTeam), 'Equipo copiado ✅'))
+  );
   root.querySelector('#addMember')?.addEventListener('click', () => openMemberForm());
   root.querySelector('#addMemberEmpty')?.addEventListener('click', () => openMemberForm());
 
@@ -140,6 +148,38 @@ export function renderMiembros(root) {
       }
     })
   );
+}
+
+/* ---------- Copiar como texto (WhatsApp, etc.) ---------- */
+
+function teamLines(t) {
+  const list = teamMembers(t.id);
+  const lines = [`👥 *${t.name}* (${list.length})`];
+  if (list.length) list.forEach((m) => lines.push(`• ${m.name}`));
+  else lines.push('(sin miembros asignados)');
+  return lines;
+}
+
+function teamText(teamId) {
+  const team = teamById(teamId);
+  return team ? teamLines(team).join('\n') : '';
+}
+
+function allTeamsText() {
+  const { teams, members } = store.state;
+  const today = new Date().toLocaleDateString('es-ES');
+  const lines = [`🤝 *EQUIPOS · Desayunos Hospital del Niño* (${today})`];
+  teams.forEach((t) => {
+    lines.push('');
+    lines.push(...teamLines(t));
+  });
+  const orphans = members.filter((m) => !m.teamId || !teamById(m.teamId));
+  if (orphans.length) {
+    lines.push('');
+    lines.push(`👥 *Sin equipo* (${orphans.length})`);
+    orphans.forEach((m) => lines.push(`• ${m.name}`));
+  }
+  return lines.join('\n');
 }
 
 async function openTeamForm(id) {
