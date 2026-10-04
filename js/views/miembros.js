@@ -68,7 +68,7 @@ export function renderMiembros(root) {
         : `<div class="table-wrap">
             <table class="table">
               <thead>
-                <tr><th>Nombre</th><th>Equipo / rol</th><th>Contacto</th><th>Notas</th><th></th></tr>
+                <tr><th scope="col">Nombre</th><th scope="col">Equipo / rol</th><th scope="col">Contacto</th><th scope="col">Notas</th><th scope="col"></th></tr>
               </thead>
               <tbody>
                 ${filtered

@@ -1,4 +1,4 @@
-import { store, productById, memberById, teamById, upcomingEvents, lowStockItems } from '../store.js';
+import { store, productById, memberById, teamById, upcomingEvents, lowStockItems, setQty } from '../store.js';
 import { esc, toast, openModal, field, grid, emptyState, statCard, formatDate, formatDateShort, formatNumber, confirmDialog, copyText } from '../ui.js';
 
 const STATUS = {
@@ -79,7 +79,7 @@ export function renderDesayunos(root) {
         if (!ev) return;
         ev.items.forEach((it) => {
           const p = s.inventory.find((x) => x.id === it.productId);
-          if (p) p.qty = Number(p.qty) + Number(it.qty);
+          if (p) setQty(p, Number(p.qty) + Number(it.qty));
         });
         ev.deducted = false;
       });
@@ -228,7 +228,7 @@ function deductInventory(eventId, root) {
     const e = s.events.find((x) => x.id === eventId);
     e.items.forEach((it) => {
       const p = s.inventory.find((x) => x.id === it.productId);
-      if (p) p.qty = Math.max(0, Number(p.qty) - Number(it.qty));
+      if (p) setQty(p, Math.max(0, Number(p.qty) - Number(it.qty)));
     });
     e.deducted = true;
   });

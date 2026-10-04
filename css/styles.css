@@ -14,11 +14,11 @@
   --primary-soft: #e0f2f1;
   --danger: #c62828;
   --danger-soft: #fdecea;
-  --warn: #b26a00;
+  --warn: #a05d00;
   --warn-soft: #fff4e0;
   --info: #1d4ed8;
   --info-soft: #e6edff;
-  --ok: #17803d;
+  --ok: #157538;
   --ok-soft: #e4f6ea;
   --radius: 14px;
   --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 8px 24px rgba(16, 24, 40, .06);
@@ -430,6 +430,15 @@ small { font-size: .8em; }
 .badge--info { background: var(--info-soft); color: var(--info); }
 .badge--warn { background: var(--warn-soft); color: var(--warn); }
 .badge--muted { background: var(--surface-2); color: var(--muted); }
+
+/* ---------- Lista de compras ---------- */
+
+.shop-item { display: flex; align-items: center; gap: 4px; }
+.shop-item .check { flex: 1; min-width: 0; }
+.shop-item.is-bought { opacity: .7; }
+.shop-item.is-bought .check__name { text-decoration: line-through; color: var(--muted); }
+.shop-item.is-bought .check__meta { text-decoration: line-through; }
+a.btn { text-decoration: none; }
 
 .qty { display: inline-flex; align-items: center; gap: 8px; }
 .qty small { color: var(--muted); }

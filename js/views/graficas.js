@@ -1,4 +1,4 @@
-import { store, lowStockItems } from '../store.js';
+import { store, lowStockItems, productStatus } from '../store.js';
 import { esc, statCard, formatNumber } from '../ui.js';
 
 const PALETTE = ['#0f766e', '#2563eb', '#d97706', '#7c3aed', '#0891b2', '#be123c', '#4d7c0f', '#9333ea'];
@@ -146,7 +146,7 @@ function stockBars(inventory) {
         .map((p) => {
           const qty = Number(p.qty);
           const min = Number(p.min || 0);
-          const low = qty <= min;
+          const low = productStatus(p) === 'falta';
           return `
           <div class="hbar ${low ? 'is-low' : ''}" title="${esc(p.name)}: ${formatNumber(qty)} ${esc(p.unit || 'u.')} (mínimo ${formatNumber(min)})">
             <span class="hbar__label">${esc(p.name)}</span>

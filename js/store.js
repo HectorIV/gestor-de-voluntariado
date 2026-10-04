@@ -19,6 +19,7 @@ function defaultState() {
     members: [],
     inventory: [],
     events: [],
+    shopping: [],
     categories: [
       'Alimentos',
       'Servilletas y desechables',
@@ -43,6 +44,7 @@ function migrate(raw) {
     members: Array.isArray(raw.members) ? raw.members : [],
     inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
     events: Array.isArray(raw.events) ? raw.events : [],
+    shopping: Array.isArray(raw.shopping) ? raw.shopping : [],
     categories: Array.isArray(raw.categories) && raw.categories.length ? raw.categories : base.categories,
     settings: { ...base.settings, ...(raw.settings || {}) },
   };
@@ -107,8 +109,36 @@ export function memberById(id) {
   return state.members.find((m) => m.id === id);
 }
 
+/**
+ * Estado de un producto:
+ *  - 'falta' si está por debajo del mínimo, o marcado a mano como falta.
+ *  - 'ok' si llega al mínimo (la igualdad ya cumple) o está marcado a mano como completo.
+ * El marcado manual (p.flag) tiene prioridad sobre los números.
+ */
+export function productStatus(p) {
+  if (p.flag === 'completo') return 'ok';
+  if (p.flag === 'falta') return 'falta';
+  return Number(p.qty) < Number(p.min || 0) ? 'falta' : 'ok';
+}
+
+export function isMissing(p) {
+  return productStatus(p) === 'falta';
+}
+
+/** Marca/desmarca a mano ('falta' | 'completo' | null para volver a lo automático). */
+export function setFlag(p, flag) {
+  p.flag = flag || null;
+}
+
+/** Cambia la cantidad y vuelve al estado automático (borra marcas manuales). */
+export function setQty(p, qty) {
+  p.qty = Math.max(0, Number(qty) || 0);
+  p.flag = null;
+  p.bought = false;
+}
+
 export function lowStockItems() {
-  return state.inventory.filter((p) => Number(p.qty) <= Number(p.min || 0));
+  return state.inventory.filter((p) => productStatus(p) === 'falta');
 }
 
 export function upcomingEvents() {

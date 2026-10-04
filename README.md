@@ -28,7 +28,7 @@ internet**.
 - **Los datos se guardan** en el navegador (`localStorage`), también sin conexión, y
   sobreviven a cerrar la app. No se sincronizan entre dispositivos: usa **⬇ Exportar /
   ⬆ Importar** para pasarlos.
-- Al cambiar la app, sube la versión en `sw.js` (`const VERSION = 'v3'`, …) para que
+- Al cambiar la app, sube la versión en `sw.js` (`const VERSION = 'v5'`, …) para que
   los usuarios carguen la versión nueva sin cachés viejas.
 - Los iconos se generan con `python tools/generate_icons.py` (requiere `pip install pillow`).
 
@@ -58,10 +58,28 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
   tienes aparecen como “ya está”. Entra con cantidad 0 y su mínimo, para verlo en “Reponer”.
 - Al crear un producto, el nombre autocompleta categoría, unidad y mínimo (lista de sugerencias).
 - Botones `−` / `＋` para ajustar cantidades rápidamente.
-- Aviso automático **"Reponer"** cuando la cantidad llega a la mínima.
+- Aviso automático **"Reponer"** cuando la cantidad baja **por debajo** del mínimo
+  (llegar justo al mínimo ya cuenta como **Completo**).
+- **Botón ✅ / ⚠️ en cada fila** para marcar a mano si **falta** o ya se **completó**,
+  aunque los números digan otra cosa (aparece el aviso “a mano” y el botón ↩️ para
+  volver al cálculo automático). Cambiar la cantidad con `−`/`＋` o desde el formulario
+  también vuelve al estado automático.
 - Búsqueda por nombre y filtro por categoría.
 - **📋 Copiar lista** / **🔴 Faltantes**: copia el inventario como texto con formato
   de WhatsApp (negritas con *asteriscos*) para pegarlo en el grupo.
+- Acceso rápido a **🛒 Compras** desde la propia barra de herramientas.
+
+### 🛒 Compras (lista para el mercado)
+- Se llena **sola**: entra todo lo que esté por debajo del mínimo (y lo marquen a mano
+  como “falta”), agrupado por categoría con “hay X de Y”.
+- **Marca lo que compras** con la casilla y queda **tachado**; el estado se guarda y
+  sigue ahí aunque cambies de sección o cierres la app.
+- **＋ Añadir a la lista**: artículos sueltos que no están en el inventario
+  (hielo, carbón, pan extra…) con cantidad, unidad y nota.
+- Botones: **✅ Marcar todo**, **🧹 Limpiar comprados** (borra los artículos sueltos
+  comprados y destacha los del inventario) y **📋 Copiar lista** (☐/☑ en texto plano
+  para pegar en WhatsApp).
+- Accesos directos a **📦 Ver inventario** y viceversa.
 
 ### 👥 Miembros y equipos
 - Equipos por defecto: compras, elaboración, transporte y reparto… y puedes **crear los tuyos**.
@@ -94,6 +112,6 @@ css/styles.css      · estilos, diseño responsive
 js/app.js           · rutas (#/desayunos, #/inventario…), PWA y exportar/importar
 js/store.js         · estado + guardado en localStorage
 js/ui.js            · utilidades (modal, toast, campos, formato)
-js/views/*.js       · vistas de cada sección (desayunos, inventario, miembros, gráficas, precios)
+js/views/*.js       · vistas (desayunos, inventario, compras, miembros, gráficas, precios)
 tools/              · script que genera los iconos
 ```

@@ -1,4 +1,4 @@
-import { store, productById, lowStockItems } from '../store.js';
+import { store, productById, lowStockItems, productStatus, setFlag, setQty } from '../store.js';
 import { esc, toast, openModal, field, grid, emptyState, statCard, formatNumber, confirmDialog, copyText } from '../ui.js';
 import { SUGGESTED, suggestedByName } from '../sugerencias.js';
 
@@ -31,6 +31,7 @@ export function renderInventario(root) {
       </select>
       <button class="btn btn--secondary" id="addTypical">🧺 Lista típica</button>
       <div class="toolbar__copy">
+        <a class="btn btn--ghost btn--sm" href="#/compras" title="Ir a la lista de compras">🛒 Compras</a>
         <button class="btn btn--ghost btn--sm" id="copyInv" title="Copiar todo el inventario como texto">📋 Copiar lista</button>
         <button class="btn btn--ghost btn--sm" id="copyMissing" title="Copiar solo lo que hay que comprar">🔴 Faltantes</button>
       </div>
@@ -55,12 +56,12 @@ export function renderInventario(root) {
           <table class="table">
             <thead>
               <tr>
-                <th>Producto</th>
-                <th>Categoría</th>
-                <th class="num">Cantidad</th>
-                <th class="num">Mínimo</th>
-                <th>Estado</th>
-                <th></th>
+                <th scope="col">Producto</th>
+                <th scope="col">Categoría</th>
+                <th scope="col" class="num">Cantidad</th>
+                <th scope="col" class="num">Mínimo</th>
+                <th scope="col">Estado</th>
+                <th scope="col"></th>
               </tr>
             </thead>
             <tbody>
@@ -121,17 +122,45 @@ export function renderInventario(root) {
       const delta = Number(btn.dataset.adjust);
       store.update((s) => {
         const p = s.inventory.find((x) => x.id === btn.dataset.id);
-        if (p) p.qty = Math.max(0, Number(p.qty) + delta);
+        if (p) setQty(p, Number(p.qty) + delta);
       });
+      renderInventario(root);
+    })
+  );
+  root.querySelectorAll('[data-flag]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const p = productById(btn.dataset.flag);
+      if (!p) return;
+      const next = productStatus(p) === 'falta' ? 'completo' : 'falta';
+      store.update(() => setFlag(p, next));
+      toast(next === 'completo' ? `"${p.name}": marcado como completo ✅` : `"${p.name}": marcado como falta ⚠️`);
+      renderInventario(root);
+    })
+  );
+  root.querySelectorAll('[data-unflag]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const p = productById(btn.dataset.unflag);
+      if (!p) return;
+      store.update(() => setFlag(p, null));
+      toast(`"${p.name}": marca manual quitada`);
       renderInventario(root);
     })
   );
 }
 
 function rowHtml(p) {
-  const lowStock = Number(p.qty) <= Number(p.min || 0);
+  const missing = productStatus(p) === 'falta';
+  const manual = p.flag === 'falta' || p.flag === 'completo';
+  const badge = missing
+    ? '<span class="badge badge--danger">Reponer</span>'
+    : '<span class="badge badge--ok">Completo</span>';
+  const toggle = `
+    <button class="icon-btn" data-flag="${p.id}" title="${missing ? 'Marcar como completo' : 'Marcar como falta'}">${missing ? '✅' : '⚠️'}</button>`;
+  const reset = manual
+    ? `<button class="icon-btn" data-unflag="${p.id}" title="Quitar marca manual (volver al automático)">↩️</button>`
+    : '';
   return `
-    <tr class="${lowStock ? 'row-low' : ''}">
+    <tr class="${missing ? 'row-low' : ''}">
       <td>
         <div class="cell-title">${esc(p.name)}</div>
         ${p.notes ? `<div class="cell-sub">${esc(p.notes)}</div>` : ''}
@@ -145,8 +174,9 @@ function rowHtml(p) {
         </div>
       </td>
       <td class="num">${formatNumber(p.min || 0)}</td>
-      <td>${lowStock ? '<span class="badge badge--danger">Reponer</span>' : '<span class="badge badge--ok">OK</span>'}</td>
+      <td>${badge}${manual ? '<div class="cell-sub">a mano</div>' : ''}</td>
       <td class="row-actions">
+        ${toggle}${reset}
         <button class="icon-btn" data-edit="${p.id}" title="Editar">✏️</button>
         <button class="icon-btn" data-delete="${p.id}" title="Eliminar">🗑️</button>
       </td>
@@ -171,7 +201,7 @@ async function openProductForm(id) {
         field({ label: 'Categoría', name: 'category', type: 'select', value: existing?.category || categories[0], options: categories }) +
         field({ label: 'Cantidad actual', name: 'qty', type: 'number', min: 0, required: true, value: existing ? existing.qty : 0 }) +
         field({ label: 'Unidad', name: 'unit', placeholder: 'uds., paquetes, litros…', value: existing?.unit || 'uds.', hint: 'Cómo se cuenta' }) +
-        field({ label: 'Cantidad mínima', name: 'min', type: 'number', min: 0, value: existing ? existing.min || 0 : 0, hint: 'Se marcará como "Reponer" al llegar a este nivel' }) +
+        field({ label: 'Cantidad mínima', name: 'min', type: 'number', min: 0, value: existing ? existing.min || 0 : 0, hint: 'Al llegar exactamente a este nivel ya cuenta como completo; por debajo se marca "Reponer"' }) +
         field({ label: 'Notas', name: 'notes', placeholder: 'Marca, tamaño, dónde se guarda…', value: existing?.notes || '' })
     ) +
     `<datalist id="sugerenciasNombre">${SUGGESTED.map((s) => `<option value="${esc(s.name)}"></option>`).join('')}</datalist>`;
@@ -203,11 +233,11 @@ async function openProductForm(id) {
           Object.assign(p, {
             name,
             category: data.category,
-            qty: Math.max(0, Number(data.qty) || 0),
             unit: (data.unit || 'uds.').trim(),
             min: Math.max(0, Number(data.min) || 0),
             notes: (data.notes || '').trim(),
           });
+          setQty(p, data.qty);
         } else {
           s.inventory.push({
             id: store.uid(),
@@ -217,6 +247,7 @@ async function openProductForm(id) {
             unit: (data.unit || 'uds.').trim(),
             min: Math.max(0, Number(data.min) || 0),
             notes: (data.notes || '').trim(),
+            flag: null,
           });
         }
       });
@@ -236,7 +267,7 @@ function inventoryText(onlyMissing) {
   const lines = [];
 
   if (onlyMissing) {
-    const low = inventory.filter((p) => Number(p.qty) <= Number(p.min || 0));
+    const low = lowStockItems();
     if (!low.length) return '';
     lines.push(`🔴 *FALTAN COMPRAR* (${today})`);
     low.forEach((p) => {
@@ -252,7 +283,7 @@ function inventoryText(onlyMissing) {
     lines.push('');
     lines.push(`*${c.toUpperCase()}*`);
     items.forEach((p) => {
-      const falta = Number(p.qty) <= Number(p.min || 0) ? '  ⚠️ reponer' : '';
+      const falta = productStatus(p) === 'falta' ? '  ⚠️ reponer' : '';
       lines.push(`• ${p.name}: ${formatNumber(p.qty)} ${p.unit || 'u.'}${falta}`);
     });
   });

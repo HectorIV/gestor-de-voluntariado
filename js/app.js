@@ -2,6 +2,7 @@ import { store } from './store.js';
 import { toast, confirmDialog } from './ui.js';
 import { renderDesayunos } from './views/desayunos.js';
 import { renderInventario } from './views/inventario.js';
+import { renderCompras } from './views/compras.js';
 import { renderMiembros } from './views/miembros.js';
 import { renderGraficas } from './views/graficas.js';
 import { renderPrecios } from './views/precios.js';
@@ -16,6 +17,11 @@ const ROUTES = {
     title: 'Inventario',
     subtitle: 'Comida, servilletas, guantes, cafeteras y todo lo necesario',
     render: renderInventario,
+  },
+  compras: {
+    title: 'Lista de compras',
+    subtitle: 'Ve marcando lo que compras; lo hecho queda tachado',
+    render: renderCompras,
   },
   miembros: {
     title: 'Miembros y equipos',
