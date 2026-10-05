@@ -64,13 +64,15 @@ export function renderGraficas(root) {
         statusSeries(events)
       ))}
 
-      ${chartCard(
-        'Miembros por equipo',
-        members.some((m) => memberTeamIds(m).length > 1)
-          ? `${members.length} voluntarios · algunos cuentan en varios equipos`
-          : `${members.length} voluntarios`,
-        horizontalBars(teamSeries(teams, members))
-      )}
+      ${(() => {
+        const n = members.length;
+        const total = `${n} ${n === 1 ? 'voluntario' : 'voluntarios'}`;
+        return chartCard(
+          'Miembros por equipo',
+          members.some((m) => memberTeamIds(m).length > 1) ? `${total} · algunos cuentan en varios equipos` : total,
+          horizontalBars(teamSeries(teams, members))
+        );
+      })()}
 
       ${chartCard('Productos más usados', 'según lo consumido en los desayunos', horizontalBars(
         productUsage(active, inventory)
