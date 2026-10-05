@@ -1,4 +1,4 @@
-import { store, memberById, teamById, teamMembers } from '../store.js';
+import { store, memberById, teamById, teamMembers, memberTeamIds, teamsOfMember, isTeamless } from '../store.js';
 import { esc, toast, openModal, field, grid, emptyState, confirmDialog, copyText } from '../ui.js';
 
 let memberSearch = '';
@@ -50,7 +50,7 @@ export function renderMiembros(root) {
       <div class="panel__head">
         <div>
           <h2>Miembros</h2>
-          <p class="muted">Nombres y el rol (equipo) que desempeñan en el desayuno.</p>
+          <p class="muted">Nombres y los equipos en los que participan (uno o varios).</p>
         </div>
         <div class="panel__head-actions">
           <input class="input input--search" id="memberSearch" type="search" placeholder="🔍 Buscar miembro…" value="${esc(memberSearch)}" />
@@ -68,16 +68,16 @@ export function renderMiembros(root) {
         : `<div class="table-wrap">
             <table class="table">
               <thead>
-                <tr><th scope="col">Nombre</th><th scope="col">Equipo / rol</th><th scope="col">Contacto</th><th scope="col">Notas</th><th scope="col"></th></tr>
+                <tr><th scope="col">Nombre</th><th scope="col">Equipos</th><th scope="col">Contacto</th><th scope="col">Notas</th><th scope="col"></th></tr>
               </thead>
               <tbody>
                 ${filtered
                   .map((m) => {
-                    const team = teamById(m.teamId);
+                    const memberTeams = teamsOfMember(m);
                     return `
                     <tr>
                       <td><div class="cell-title">${esc(m.name)}</div></td>
-                      <td>${team ? `<span class="tag tag--team">${esc(team.name)}</span>` : '<span class="muted">Sin equipo</span>'}</td>
+                      <td>${memberTeams.length ? memberTeams.map((t) => `<span class="tag tag--team">${esc(t.name)}</span>`).join(' ') : '<span class="muted">Sin equipo</span>'}</td>
                       <td>${[m.phone, m.email].filter(Boolean).map((v) => `<div class="cell-sub">${esc(v)}</div>`).join('') || '<span class="muted">—</span>'}</td>
                       <td>${m.notes ? `<span class="cell-sub">${esc(m.notes)}</span>` : '—'}</td>
                       <td class="row-actions">
@@ -116,13 +116,13 @@ export function renderMiembros(root) {
       if (!t) return;
       const count = teamMembers(t.id).length;
       const msg = count
-        ? `El equipo "${t.name}" tiene ${count} miembro(s). Se quedarán sin equipo asignado. ¿Continuar?`
+        ? `El equipo "${t.name}" tiene ${count} miembro(s). Se quitará de sus equipos (los que tengan otros seguirán en ellos). ¿Continuar?`
         : `¿Eliminar el equipo "${t.name}"?`;
       if (confirmDialog(msg)) {
         store.update((s) => {
           s.teams = s.teams.filter((x) => x.id !== t.id);
           s.members.forEach((m) => {
-            if (m.teamId === t.id) m.teamId = '';
+            m.teamIds = memberTeamIds(m).filter((id) => id !== t.id);
           });
         });
         toast('Equipo eliminado');
@@ -173,7 +173,7 @@ function allTeamsText() {
     lines.push('');
     lines.push(...teamLines(t));
   });
-  const orphans = members.filter((m) => !m.teamId || !teamById(m.teamId));
+  const orphans = members.filter(isTeamless);
   if (orphans.length) {
     lines.push('');
     lines.push(`👥 *Sin equipo* (${orphans.length})`);
@@ -213,36 +213,61 @@ async function openMemberForm(id) {
   const { teams } = store.state;
   const existing = id ? memberById(id) : null;
 
-  if (teams.length === 0) {
-    toast('Primero crea al menos un equipo', 'error');
-    return;
-  }
+  // Al crear viene marcado el primer equipo (atajo); al editar, los suyos.
+  const selected = existing ? memberTeamIds(existing) : teams.length ? [teams[0].id] : [];
 
-  const teamOptions = [{ value: '', label: '— Sin equipo —' }, ...teams.map((t) => ({ value: t.id, label: t.name }))];
-  const selectedTeam = existing?.teamId || teams[0].id;
+  const teamsBlock = teams.length
+    ? `
+      <fieldset class="team-group">
+        <legend>Equipos / rol</legend>
+        ${teams
+          .map(
+            (t) => `
+          <label class="check">
+            <input type="checkbox" name="teamId" value="${t.id}" ${selected.includes(t.id) ? 'checked' : ''} />
+            <span>${esc(t.name)}</span>
+          </label>`
+          )
+          .join('')}
+      </fieldset>
+      <p class="field__hint" id="teamCount"></p>
+      <p class="field__hint">Un miembro puede estar en varios equipos: marca todos los que correspondan.</p>`
+    : '<p class="muted">Aún no hay equipos creados. Créalos con “＋ Añadir equipo” y vuelve aquí para asignarlos.</p>';
 
-  const body = grid(
-    'form-grid',
-    field({ label: 'Nombre completo', name: 'name', required: true, value: existing?.name || '', placeholder: 'Ej. María López' }) +
-      field({ label: 'Equipo / rol', name: 'teamId', type: 'select', value: selectedTeam, options: teamOptions }) +
-      field({ label: 'Teléfono', name: 'phone', value: existing?.phone || '', placeholder: 'Opcional' }) +
-      field({ label: 'Correo', name: 'email', type: 'email', value: existing?.email || '', placeholder: 'Opcional' }) +
-      field({ label: 'Notas', name: 'notes', type: 'textarea', value: existing?.notes || '', placeholder: 'Disponibilidad, observaciones…' })
-  );
+  const body =
+    grid(
+      'form-grid',
+      field({ label: 'Nombre completo', name: 'name', required: true, value: existing?.name || '', placeholder: 'Ej. María López' }) +
+        field({ label: 'Teléfono', name: 'phone', value: existing?.phone || '', placeholder: 'Opcional' }) +
+        field({ label: 'Correo', name: 'email', type: 'email', value: existing?.email || '', placeholder: 'Opcional' }) +
+        field({ label: 'Notas', name: 'notes', type: 'textarea', value: existing?.notes || '', placeholder: 'Disponibilidad, observaciones…' })
+    ) +
+    teamsBlock;
 
   const saved = await openModal({
     title: existing ? 'Editar miembro' : 'Añadir miembro',
     body,
-    onSubmit: (data) => {
+    onMount: (frm) => {
+      const count = frm.querySelector('#teamCount');
+      const refresh = () => {
+        if (!count) return;
+        const n = frm.querySelectorAll('input[name=teamId]:checked').length;
+        count.textContent = n ? `${n} ${n === 1 ? 'equipo seleccionado' : 'equipos seleccionados'}` : 'Sin equipo asignado';
+      };
+      frm.querySelectorAll('input[name=teamId]').forEach((cb) => cb.addEventListener('change', refresh));
+      refresh();
+    },
+    onSubmit: (data, frm) => {
       const name = (data.name || '').trim();
       if (!name) {
         toast('Escribe el nombre del miembro', 'error');
         return false;
       }
+      const teamIds = [...frm.querySelectorAll('input[name=teamId]:checked')].map((el) => el.value);
       store.update((s) => {
         const payload = {
           name,
-          teamId: data.teamId || '',
+          teamIds,
           phone: (data.phone || '').trim(),
           email: (data.email || '').trim(),
           notes: (data.notes || '').trim(),

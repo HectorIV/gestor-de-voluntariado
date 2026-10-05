@@ -1,4 +1,4 @@
-import { store, productById, memberById, teamById, upcomingEvents, lowStockItems, setQty } from '../store.js';
+import { store, productById, memberById, teamById, teamsOfMember, memberTeamIds, isTeamless, upcomingEvents, lowStockItems, setQty } from '../store.js';
 import { esc, toast, openModal, field, grid, emptyState, statCard, formatDate, formatDateShort, formatNumber, confirmDialog, copyText } from '../ui.js';
 
 const STATUS = {
@@ -122,14 +122,12 @@ function eventText(id) {
   const memberIds = ev.memberIds || [];
   if (memberIds.length) {
     lines.push('', '*👥 Equipo:*');
+    const assigned = memberIds.map(memberById).filter(Boolean);
     store.state.teams.forEach((t) => {
-      const names = memberIds
-        .map(memberById)
-        .filter(Boolean)
-        .filter((m) => m.teamId === t.id);
+      const names = assigned.filter((m) => memberTeamIds(m).includes(t.id));
       if (names.length) lines.push(`• ${t.name}: ${names.map((m) => m.name).join(', ')}`);
     });
-    const orphan = memberIds.map(memberById).filter(Boolean).filter((m) => !teamById(m.teamId));
+    const orphan = assigned.filter(isTeamless);
     if (orphan.length) lines.push(`• Sin equipo: ${orphan.map((m) => m.name).join(', ')}`);
   }
 
@@ -156,20 +154,15 @@ function eventCard(ev) {
     return `<li>${p ? esc(p.name) : '<s>Producto eliminado</s>'} · <strong>${formatNumber(it.qty)}</strong> ${esc(p?.unit || 'u.')}</li>`;
   });
 
+  const assigned = (ev.memberIds || []).map(memberById).filter(Boolean);
   const byTeam = store.state.teams
     .map((t) => {
-      const names = (ev.memberIds || [])
-        .map(memberById)
-        .filter(Boolean)
-        .filter((m) => m.teamId === t.id);
+      const names = assigned.filter((m) => memberTeamIds(m).includes(t.id));
       return names.length ? `<li><strong>${esc(t.name)}:</strong> ${names.map((m) => esc(m.name)).join(', ')}</li>` : '';
     })
     .filter(Boolean);
 
-  const noTeam = (ev.memberIds || [])
-    .map(memberById)
-    .filter(Boolean)
-    .filter((m) => !teamById(m.teamId));
+  const noTeam = assigned.filter(isTeamless);
 
   if (noTeam.length) byTeam.push(`<li><strong>Sin equipo:</strong> ${noTeam.map((m) => esc(m.name)).join(', ')}</li>`);
 
@@ -504,27 +497,44 @@ async function openEventForm(id) {
       ${
         members.length === 0
           ? '<p class="muted">No hay miembros registrados. Añádelos en la sección Miembros y equipos.</p>'
-          : teams
-              .map((t) => {
-                const list = members.filter((m) => m.teamId === t.id);
-                const extras = members.filter((m) => !m.teamId && t.id === teams[0].id);
-                const rows = t.id === teams[0].id ? [...list, ...extras] : list;
-                if (!rows.length) return '';
+          : (() => {
+              // Cada miembro aparece una sola vez: en su primer equipo (con etiqueta
+              // de los demás equipos a los que también pertenece) o en "Sin equipo".
+              const memberRow = (m, groupId) => {
+                const others = teamsOfMember(m).filter((t) => t.id !== groupId);
+                const tags = others.length
+                  ? ` <span class="check__teams">${others.map((t) => `<span class="tag tag--team">${esc(t.name)}</span>`).join(' ')}</span>`
+                  : '';
                 return `
-                <fieldset class="team-group">
-                  <legend>${esc(t.name)}</legend>
-                  ${rows
-                    .map(
-                      (m) => `
                     <label class="check">
                       <input type="checkbox" name="member" value="${m.id}" ${draftMembers.has(m.id) ? 'checked' : ''} />
-                      <span>${esc(m.name)}</span>
-                    </label>`
-                    )
-                    .join('')}
+                      <span class="check__name">${esc(m.name)}${tags}</span>
+                    </label>`;
+              };
+
+              const groups = teams
+                .map((t) => {
+                  const list = members.filter((m) => memberTeamIds(m).filter((id) => teamById(id))[0] === t.id);
+                  if (!list.length) return '';
+                  return `
+                <fieldset class="team-group">
+                  <legend>${esc(t.name)}</legend>
+                  ${list.map((m) => memberRow(m, t.id)).join('')}
                 </fieldset>`;
-              })
-              .join('')
+                })
+                .join('');
+
+              const teamless = members.filter((m) => !teamsOfMember(m).length);
+              const extra = teamless.length
+                ? `
+                <fieldset class="team-group">
+                  <legend>${teams.length ? 'Sin equipo' : 'Miembros'}</legend>
+                  ${teamless.map((m) => memberRow(m, null)).join('')}
+                </fieldset>`
+                : '';
+
+              return groups + extra;
+            })()
       }
     </div>
   `;

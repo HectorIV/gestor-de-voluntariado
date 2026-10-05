@@ -440,6 +440,9 @@ small { font-size: .8em; }
   color: var(--muted);
 }
 .tag--team { background: var(--primary-soft); border-color: transparent; color: var(--primary-strong); font-weight: 600; }
+/* Etiquetas de los demás equipos junto al nombre (filas de selección) */
+.check__teams { display: inline-flex; gap: 4px; flex-wrap: wrap; margin-left: 4px; }
+.check__teams .tag { padding: 1px 7px; font-size: 11px; font-weight: 600; }
 
 .badge {
   display: inline-block;

@@ -41,7 +41,8 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
 - Tarjetas con estadísticas: próximo desayuno, totales, voluntarios y stock bajo.
 - Crear desayunos con: título, fecha, área/sala del hospital, nº de personas, estado y notas.
 - Productos necesarios: se eligen del inventario con su cantidad.
-- Equipo asignado: se marcan los miembros agrupados por equipo.
+- Equipo asignado: se marcan los miembros agrupados por equipo (cada uno aparece una
+  sola vez, con etiquetas de los demás equipos a los que pertenece).
 - Estados (chips): Planificado · En curso · Realizado · Cancelado.
 - Botón **Descontar del inventario**: baja las cantidades usadas (con aviso si no hay stock)
   y **Devolver al inventario** si te equivocaste.
@@ -93,8 +94,10 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
 
 ### 👥 Miembros y equipos
 - Equipos por defecto: compras, elaboración, transporte y reparto… y puedes **crear los tuyos**.
-- Miembros con nombre, equipo/rol, teléfono, correo y notas.
-- Cada equipo muestra su lista de miembros.
+- Miembros con nombre, **uno o varios equipos**, teléfono, correo y notas.
+- Cada equipo muestra su lista de miembros; **un miembro puede pertenecer a varios
+  equipos** y aparecerá en todos ellos (al editar, marcas todas las casillas que
+  correspondan).
 - **📋 Copiar equipos** (todos los grupos con sus miembros) o el icono 📋 de cada tarjeta
   para copiar solo ese equipo y pegarlo en WhatsApp.
 
@@ -103,7 +106,8 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
 - **Desayunos por mes** y **Personas atendidas por mes** (barras, con selector de
   periodo: 3 / 6 / 12 meses o todo).
 - **Estado de los desayunos** en dona (realizado, planificado, en curso, cancelado).
-- **Miembros por equipo** y **Productos más usados** (barras horizontales).
+- **Miembros por equipo** y **Productos más usados** (barras horizontales); quien está
+  en varios equipos cuenta en cada uno de ellos.
 - **Stock actual** con la línea vertical marcando la cantidad mínima de cada producto.
 - Todo con datos reales de la app: si no hay nada registrado, muestra un aviso.
 

@@ -1,4 +1,4 @@
-import { store, lowStockItems, productStatus } from '../store.js';
+import { store, lowStockItems, productStatus, memberTeamIds } from '../store.js';
 import { esc, statCard, formatNumber } from '../ui.js';
 
 const PALETTE = ['#0f766e', '#2563eb', '#d97706', '#7c3aed', '#0891b2', '#be123c', '#4d7c0f', '#9333ea'];
@@ -64,9 +64,13 @@ export function renderGraficas(root) {
         statusSeries(events)
       ))}
 
-      ${chartCard('Miembros por equipo', `${members.length} voluntarios`, horizontalBars(
-        teamSeries(teams, members)
-      ))}
+      ${chartCard(
+        'Miembros por equipo',
+        members.some((m) => memberTeamIds(m).length > 1)
+          ? `${members.length} voluntarios · algunos cuentan en varios equipos`
+          : `${members.length} voluntarios`,
+        horizontalBars(teamSeries(teams, members))
+      )}
 
       ${chartCard('Productos más usados', 'según lo consumido en los desayunos', horizontalBars(
         productUsage(active, inventory)
@@ -219,10 +223,10 @@ function statusSeries(events) {
 function teamSeries(teams, members) {
   const list = teams.map((t, i) => ({
     label: t.name,
-    value: members.filter((m) => m.teamId === t.id).length,
+    value: members.filter((m) => memberTeamIds(m).includes(t.id)).length,
     color: PALETTE[i % PALETTE.length],
   }));
-  const orphan = members.filter((m) => !m.teamId || !teams.some((t) => t.id === m.teamId)).length;
+  const orphan = members.filter((m) => !memberTeamIds(m).some((id) => teams.some((t) => t.id === id))).length;
   if (orphan) list.push({ label: 'Sin equipo', value: orphan, color: '#94a3b8' });
   return list;
 }

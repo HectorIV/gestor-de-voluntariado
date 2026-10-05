@@ -34,6 +34,16 @@ function defaultState() {
   };
 }
 
+/** Normaliza los equipos de un miembro a array (antes era un solo teamId). */
+function migrateMembers(members) {
+  return members.map((m) => {
+    const nm = { ...m };
+    if (!Array.isArray(nm.teamIds)) nm.teamIds = nm.teamId ? [nm.teamId] : [];
+    delete nm.teamId; // antiguo campo de un solo equipo
+    return nm;
+  });
+}
+
 function migrate(raw) {
   const base = defaultState();
   if (!raw || typeof raw !== 'object') return base;
@@ -41,7 +51,7 @@ function migrate(raw) {
     ...base,
     ...raw,
     teams: Array.isArray(raw.teams) ? raw.teams : base.teams,
-    members: Array.isArray(raw.members) ? raw.members : [],
+    members: migrateMembers(Array.isArray(raw.members) ? raw.members : []),
     inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
     events: Array.isArray(raw.events) ? raw.events : [],
     shopping: Array.isArray(raw.shopping) ? raw.shopping : [],
@@ -147,6 +157,25 @@ export function upcomingEvents() {
     .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 }
 
+/**
+ * IDs de equipo de un miembro: puede pertenecer a varios.
+ * Tolera datos antiguos con un único teamId.
+ */
+export function memberTeamIds(m) {
+  if (Array.isArray(m.teamIds)) return m.teamIds;
+  return m.teamId ? [m.teamId] : [];
+}
+
+/** Equipos (objetos) de un miembro, descartando los que ya no existan. */
+export function teamsOfMember(m) {
+  return memberTeamIds(m).map((id) => teamById(id)).filter(Boolean);
+}
+
+/** true si el miembro no pertenece a ningún equipo existente. */
+export function isTeamless(m) {
+  return teamsOfMember(m).length === 0;
+}
+
 export function teamMembers(teamId) {
-  return state.members.filter((m) => m.teamId === teamId);
+  return state.members.filter((m) => memberTeamIds(m).includes(teamId));
 }

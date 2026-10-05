@@ -93,6 +93,7 @@ const backdrop = () => document.getElementById('modalBackdrop');
 const form = () => document.getElementById('modalForm');
 
 let currentResolve = null;
+let currentCleanup = null;
 
 /**
  * Abre un modal con un formulario.
@@ -100,6 +101,18 @@ let currentResolve = null;
  * @returns {Promise<boolean>} true si se guardó
  */
 export function openModal({ title, body, saveLabel = 'Guardar', onSubmit, onMount }) {
+  // Si ya había otro modal abierto, ciérralo antes de montar este: si no, los
+  // listeners del anterior seguirían activos y el guardado se haría dos veces.
+  if (currentCleanup) {
+    currentCleanup();
+    currentCleanup = null;
+    const prev = currentResolve;
+    currentResolve = null;
+    if (prev) prev(false);
+    backdrop().hidden = true;
+    document.body.classList.remove('no-scroll');
+  }
+
   const bd = backdrop();
   const frm = form();
   document.getElementById('modalTitle').textContent = title;
@@ -120,6 +133,7 @@ export function openModal({ title, body, saveLabel = 'Guardar', onSubmit, onMoun
       document.body.classList.remove('no-scroll');
       frm.innerHTML = '';
       cleanup();
+      currentCleanup = null;
       if (currentResolve) currentResolve(saved);
       currentResolve = null;
     };
@@ -147,6 +161,7 @@ export function openModal({ title, body, saveLabel = 'Guardar', onSubmit, onMoun
       document.getElementById('modalCancel').onclick = null;
     }
 
+    currentCleanup = cleanup;
     frm.addEventListener('submit', handleSubmit);
     bd.addEventListener('click', handleBackdropClick);
     document.addEventListener('keydown', handleKey);
