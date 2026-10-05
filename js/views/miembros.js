@@ -62,7 +62,7 @@ export function renderMiembros(root) {
         ? emptyState({
             icon: '👥',
             title: members.length ? 'Sin resultados' : 'Aún no hay miembros',
-            text: members.length ? 'Prueba con otra búsqueda.' : 'Registra a las personas y el equipo al que pertenecen.',
+            text: members.length ? 'Prueba con otra búsqueda.' : 'Registra a las personas y los equipos a los que pertenecen.',
             action: members.length ? '' : '<button class="btn btn--primary" id="addMemberEmpty">＋ Añadir miembro</button>',
           })
         : `<div class="table-wrap">
