@@ -1,5 +1,5 @@
 import { store, lowStockItems, isMissing } from '../store.js';
-import { esc, toast, openModal, field, grid, emptyState, statCard, formatNumber, copyText } from '../ui.js';
+import { esc, toast, openModal, field, grid, emptyState, statCard, formatNumber, copyText, rerender } from '../ui.js';
 
 /* ---------- Helpers ---------- */
 
@@ -48,6 +48,11 @@ function shoppingText() {
 /* ---------- Vista ---------- */
 
 export function renderCompras(root) {
+  // Conserva scroll y foco (importante en móvil: al tocar un campo no debe saltar al tope).
+  rerender(() => drawCompras(root));
+}
+
+function drawCompras(root) {
   const items = [...pendingItems(), ...manualItems()];
   const pending = items.filter((i) => !i.bought);
   const done = items.filter((i) => i.bought);
@@ -126,7 +131,7 @@ export function renderCompras(root) {
       });
       renderCompras(root);
       const again = root.querySelector(`[data-buy="${cb.dataset.buy}"]`);
-      if (again && document.activeElement !== again) again.focus();
+      if (again && document.activeElement !== again) again.focus({ preventScroll: true });
     })
   );
 

@@ -123,7 +123,8 @@ export function openModal({ title, body, saveLabel = 'Guardar', onSubmit, onMoun
   if (typeof onMount === 'function') onMount(frm);
 
   const firstInput = frm.querySelector('input:not([type=hidden]), select, textarea');
-  if (firstInput) setTimeout(() => firstInput.focus(), 50);
+  // preventScroll: al abrir no debe mover la página (en móvil se notaba como un salto).
+  if (firstInput) setTimeout(() => firstInput.focus({ preventScroll: true }), 50);
 
   return new Promise((resolve) => {
     currentResolve = resolve;
@@ -203,6 +204,52 @@ export function field({ label, name, type = 'text', value = '', required = false
 
 export function grid(cssClass, inner) {
   return `<div class="${cssClass}">${inner}</div>`;
+}
+
+/* ---------- Redibujado sin molestar al usuario ---------- */
+
+function captureFocus() {
+  const el = document.activeElement;
+  const view = document.getElementById('view');
+  if (!el || !view || !view.contains(el)) return null; // el foco está fuera de la vista (nav, modal…)
+  const info = { id: el.id || '', name: el.name || '', value: typeof el.value === 'string' ? el.value : '', caret: null };
+  try {
+    info.caret = typeof el.selectionStart === 'number' ? el.selectionStart : null;
+  } catch {
+    info.caret = null; // tipos de input sin selección (número, correo…)
+  }
+  return info;
+}
+
+function restoreFocus(info) {
+  let el = info.id ? document.getElementById(info.id) : null;
+  if (!el && info.name) {
+    el = [...document.querySelectorAll('input, select, textarea')].find((x) => x.name === info.name && x.value === info.value) || null;
+  }
+  if (!el) return;
+  el.focus({ preventScroll: true });
+  if (info.caret != null && typeof el.setSelectionRange === 'function') {
+    try {
+      el.setSelectionRange(info.caret, info.caret);
+    } catch {
+      /* tipos sin soporte de cursor */
+    }
+  }
+}
+
+/**
+ * Redibuja la vista sin pisar lo que está haciendo el usuario: conserva la
+ * posición de scroll y el foco (y el cursor) del campo activo. Sin esto, en
+ * móvil cada toque que actualizaba datos mandaba la página al principio y
+ * cerraba el teclado.
+ * @param {() => void} fn rutina que vuelve a pintar la vista
+ */
+export function rerender(fn) {
+  const scrollY = window.scrollY;
+  const focus = captureFocus();
+  fn();
+  if (focus) restoreFocus(focus);
+  window.scrollTo({ top: scrollY });
 }
 
 export function emptyState({ icon = '✨', title, text, action = '' }) {

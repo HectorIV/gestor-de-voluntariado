@@ -49,9 +49,13 @@ function currentRoute() {
   return ROUTES[hash] ? hash : 'desayunos';
 }
 
+let lastRenderedRoute = null;
+
 function render() {
   const key = currentRoute();
   const route = ROUTES[key];
+  const routeChanged = key !== lastRenderedRoute;
+  lastRenderedRoute = key;
 
   titleEl.textContent = route.title;
   subtitleEl.textContent = route.subtitle;
@@ -62,9 +66,14 @@ function render() {
     item.classList.toggle('is-active', item.dataset.route === key);
   });
 
+  // Las vistas ya conservan scroll y foco (rerender). Al cambiar de sección
+  // volvemos al principio; en un cambio de datos NO: en móvil se notaba como
+  // un salto al tope cada vez que tocábamos un campo.
   route.render(viewEl);
-  viewEl.scrollTop = 0;
-  window.scrollTo({ top: 0 });
+  if (routeChanged) {
+    viewEl.scrollTop = 0;
+    window.scrollTo({ top: 0 });
+  }
 }
 
 /* Navegación */

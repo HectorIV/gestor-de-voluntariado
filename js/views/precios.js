@@ -1,4 +1,10 @@
+import { rerender } from '../ui.js';
+
 export function renderPrecios(root) {
+  rerender(() => drawPrecios(root));
+}
+
+function drawPrecios(root) {
   root.innerHTML = `
     <div class="coming-soon">
       <div class="coming-soon__badge">En desarrollo</div>

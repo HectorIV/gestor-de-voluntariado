@@ -1,9 +1,14 @@
 import { store, memberById, teamById, teamMembers, memberTeamIds, teamsOfMember, isTeamless } from '../store.js';
-import { esc, toast, openModal, field, grid, emptyState, confirmDialog, copyText } from '../ui.js';
+import { esc, toast, openModal, field, grid, emptyState, confirmDialog, copyText, rerender } from '../ui.js';
 
 let memberSearch = '';
 
 export function renderMiembros(root) {
+  // Conserva scroll y foco (importante en móvil: al tocar un campo no debe saltar al tope).
+  rerender(() => drawMiembros(root));
+}
+
+function drawMiembros(root) {
   const { members, teams } = store.state;
   const q = memberSearch.trim().toLowerCase();
   const filtered = members.filter((m) => !q || m.name.toLowerCase().includes(q) || (m.notes || '').toLowerCase().includes(q));
@@ -97,7 +102,7 @@ export function renderMiembros(root) {
     memberSearch = e.target.value;
     renderMiembros(root);
     const el = root.querySelector('#memberSearch');
-    el.focus();
+    el.focus({ preventScroll: true }); // sin mover la página (en móvil se notaba como un salto)
     el.setSelectionRange(el.value.length, el.value.length);
   });
 

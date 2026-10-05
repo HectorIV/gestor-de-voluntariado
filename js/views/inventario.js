@@ -1,11 +1,16 @@
 import { store, productById, lowStockItems, productStatus, setFlag, setQty } from '../store.js';
-import { esc, toast, openModal, field, grid, emptyState, statCard, formatNumber, confirmDialog, copyText } from '../ui.js';
+import { esc, toast, openModal, field, grid, emptyState, statCard, formatNumber, confirmDialog, copyText, rerender } from '../ui.js';
 import { SUGGESTED, suggestedByName } from '../sugerencias.js';
 
 let search = '';
 let categoryFilter = 'todas';
 
 export function renderInventario(root) {
+  // Conserva scroll y foco (importante en móvil: al tocar un campo no debe saltar al tope).
+  rerender(() => drawInventario(root));
+}
+
+function drawInventario(root) {
   const { inventory, categories } = store.state;
   const low = lowStockItems();
 
@@ -77,7 +82,7 @@ export function renderInventario(root) {
       search = e.target.value;
       renderInventario(root);
       const el = root.querySelector('#invSearch');
-      el.focus();
+      el.focus({ preventScroll: true }); // sin mover la página (en móvil se notaba como un salto)
       el.setSelectionRange(el.value.length, el.value.length);
     });
   }

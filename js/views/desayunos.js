@@ -1,5 +1,5 @@
 import { store, productById, memberById, teamById, teamsOfMember, memberTeamIds, isTeamless, upcomingEvents, lowStockItems, setQty } from '../store.js';
-import { esc, toast, openModal, field, grid, emptyState, statCard, formatDate, formatDateShort, formatNumber, confirmDialog, copyText } from '../ui.js';
+import { esc, toast, openModal, field, grid, emptyState, statCard, formatDate, formatDateShort, formatNumber, confirmDialog, copyText, rerender } from '../ui.js';
 
 const STATUS = {
   planificado: { label: 'Planificado', tone: 'info' },
@@ -9,6 +9,11 @@ const STATUS = {
 };
 
 export function renderDesayunos(root) {
+  // Conserva scroll y foco (importante en móvil: al tocar un campo no debe saltar al tope).
+  rerender(() => drawDesayunos(root));
+}
+
+function drawDesayunos(root) {
   const { events, members, inventory } = store.state;
   const pending = upcomingEvents();
   const low = lowStockItems();

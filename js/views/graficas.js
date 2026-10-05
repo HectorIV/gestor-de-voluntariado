@@ -1,5 +1,5 @@
 import { store, lowStockItems, productStatus, memberTeamIds } from '../store.js';
-import { esc, statCard, formatNumber } from '../ui.js';
+import { esc, statCard, formatNumber, rerender } from '../ui.js';
 
 const PALETTE = ['#0f766e', '#2563eb', '#d97706', '#7c3aed', '#0891b2', '#be123c', '#4d7c0f', '#9333ea'];
 
@@ -8,6 +8,10 @@ const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'o
 let period = '6'; // meses visibles en las gráficas mensuales
 
 export function renderGraficas(root) {
+  rerender(() => drawGraficas(root));
+}
+
+function drawGraficas(root) {
   const { events, members, teams, inventory } = store.state;
   const active = events.filter((e) => e.status !== 'cancelado');
   const done = events.filter((e) => e.status === 'realizado');
