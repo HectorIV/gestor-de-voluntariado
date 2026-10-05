@@ -45,8 +45,17 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
 - Estados (chips): Planificado · En curso · Realizado · Cancelado.
 - Botón **Descontar del inventario**: baja las cantidades usadas (con aviso si no hay stock)
   y **Devolver al inventario** si te equivocaste.
-- **📋 Copiar detalle**: el desayuno en texto plano (fecha, área, personas, productos y
-  equipo por grupos) listo para pegar en WhatsApp.
+- **🏁 Cierre con uso real**: al terminar la actividad, anotas **lo realmente consumido** de
+  cada producto y el inventario se ajusta solo:
+  - lo que **sobra vuelve** automáticamente,
+  - si algo **se acaba** (se usó más de lo que hay) se queda en 0, se avisa y se añade
+    automáticamente a la **lista de compras** con la nota “Faltó en: …”,
+  - el desayuno pasa a **Realizado** y la tarjeta muestra el resumen
+    (`usado 4 de 6 · sobró 2`).
+  - Se puede **reabrir y ajustar** cuantas veces haga falta (las cantidades se corrigen
+    por diferencia) y **↩ Devolver** devuelve exactamente lo que se sacó.
+- **📋 Copiar detalle**: el desayuno en texto plano (fecha, área, personas, productos,
+  equipo por grupos y cierre con uso real) listo para pegar en WhatsApp.
 
 ### 📦 Inventario
 - Producto, categoría, cantidad actual, unidad, cantidad mínima y notas.
@@ -71,7 +80,8 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
 
 ### 🛒 Compras (lista para el mercado)
 - Se llena **sola**: entra todo lo que esté por debajo del mínimo (y lo marquen a mano
-  como “falta”), agrupado por categoría con “hay X de Y”.
+  como “falta”), agrupado por categoría con “hay X de Y”. Lo que **falte al cerrar un
+  desayuno** entra solo, con la nota “Faltó en: …”.
 - **Marca lo que compras** con la casilla y queda **tachado**; el estado se guarda y
   sigue ahí aunque cambies de sección o cierres la app.
 - **＋ Añadir a la lista**: artículos sueltos que no están en el inventario
