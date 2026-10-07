@@ -1,7 +1,12 @@
-import { store, lowStockItems, isMissing } from '../store.js';
+import { store, lowStockItems, isMissing, recurringItems, noteRecurring } from '../store.js';
 import { esc, toast, openModal, field, grid, emptyState, statCard, formatNumber, copyText, rerender } from '../ui.js';
 
 /* ---------- Helpers ---------- */
+
+/** Nombre en minúsculas de lo que ya está en la lista, para no ofrecerlo otra vez. */
+function listedNames(items) {
+  return new Set(items.map((i) => String(i.name || '').trim().toLowerCase()));
+}
 
 function pendingItems() {
   return lowStockItems().map((p) => ({
@@ -47,6 +52,8 @@ function shoppingText() {
 
 /* ---------- Vista ---------- */
 
+let quickSearch = '';
+
 export function renderCompras(root) {
   // Conserva scroll y foco (importante en móvil: al tocar un campo no debe saltar al tope).
   rerender(() => drawCompras(root));
@@ -75,6 +82,8 @@ function drawCompras(root) {
       </div>
       <a class="btn btn--primary" href="#/inventario">📦 Ver inventario</a>
     </div>
+
+    ${quickAddPanel(items)}
 
     ${items.length === 0
       ? emptyState({
@@ -175,18 +184,157 @@ function drawCompras(root) {
     if (!text) return toast('La lista está vacía 🎉', 'ok');
     copyText(text, 'Lista de compras copiada ✅');
   });
+
+  /* Añadir rápido: filtro y productos de un toque */
+  root.querySelector('#quickSearch')?.addEventListener('input', (e) => {
+    quickSearch = e.target.value;
+    renderCompras(root);
+    const el = root.querySelector('#quickSearch');
+    el.focus({ preventScroll: true });
+    el.setSelectionRange(el.value.length, el.value.length);
+  });
+
+  root.querySelectorAll('[data-quick]').forEach((btn) =>
+    btn.addEventListener('click', () => addFromQuick(btn.dataset.quick, btn.dataset.id, items, root))
+  );
+}
+
+/* ---------- Añadir rápido (inventario + recurrentes) ---------- */
+
+function chipInventory(p) {
+  return `<button type="button" class="chip" data-quick="inv" data-id="${p.id}" title="Añadir a la lista">
+      <span class="chip__name">${esc(p.name)}</span>
+      <span class="chip__meta">${formatNumber(p.qty)} / ${formatNumber(p.min)} ${esc(p.unit || 'u.')}</span>
+    </button>`;
+}
+
+function chipRecurring(r) {
+  const times = Number(r.times) || 1;
+  const stock = Number(r.qty) ? `${formatNumber(r.qty)} ${esc(r.unit || 'u.')}` : '';
+  return `<button type="button" class="chip" data-quick="rec" data-id="${r.id}" title="Añadir a la lista">
+      <span class="chip__name">${esc(r.name)}</span>
+      <span class="chip__meta">${stock ? `${stock} · ` : ''}×${formatNumber(times)}</span>
+    </button>`;
+}
+
+/** Tarjeta con lo que se puede añadir de un toque: productos del inventario y recurrentes. */
+function quickAddPanel(items) {
+  const { inventory } = store.state;
+  const listed = listedNames(items);
+  const q = quickSearch.trim().toLowerCase();
+  const match = (name) => !q || String(name).toLowerCase().includes(q);
+
+  const invChips = inventory.filter((p) => !listed.has(p.name.trim().toLowerCase()) && match(p.name));
+  const inventoryNames = new Set(inventory.map((p) => p.name.trim().toLowerCase()));
+  const recChips = recurringItems().filter(
+    (r) =>
+      !listed.has(String(r.name || '').trim().toLowerCase()) &&
+      !inventoryNames.has(String(r.name || '').trim().toLowerCase()) &&
+      match(r.name)
+  );
+
+  const nothing = q ? `Nada coincide con “${esc(quickSearch)}”.` : '';
+  const invEmpty = nothing || 'Todo lo del inventario ya está en la lista 🎉';
+  const recEmpty = nothing || 'Se van rellenando solos: añade artículos a mano y vuelven a aparecer aquí.';
+
+  return `
+    <div class="card quickadd">
+      <div class="quickadd__head">
+        <div>
+          <h3>🔁 Añadir rápido</h3>
+          <p class="muted">Toca un producto y entra en la lista con sus datos.</p>
+        </div>
+        <input class="input input--search" id="quickSearch" type="search" placeholder="🔍 Filtra productos…" value="${esc(
+          quickSearch
+        )}" />
+      </div>
+
+      <div class="quickadd__groups">
+        <div class="quickadd__group">
+          <span class="quickadd__label">Del inventario</span>
+          <div class="chips">
+            ${invChips.length ? invChips.map(chipInventory).join('') : `<p class="muted">${invEmpty}</p>`}
+          </div>
+        </div>
+
+        <div class="quickadd__group">
+          <span class="quickadd__label">Recurrentes</span>
+          <div class="chips">
+            ${recChips.length ? recChips.map(chipRecurring).join('') : `<p class="muted">${recEmpty}</p>`}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/** Añade a la lista un producto del inventario o uno recurrente, con un toque. */
+function addFromQuick(kind, id, items, root) {
+  let item;
+  if (kind === 'inv') {
+    const p = store.state.inventory.find((x) => x.id === id);
+    if (!p) return;
+    const falta = Math.max(0, Number(p.min || 0) - Number(p.qty || 0));
+    item = {
+      id: store.uid(),
+      name: p.name,
+      qty: falta || Number(p.min || 0) || 0, // lo que hace falta, o el mínimo si está completo
+      unit: p.unit || '',
+      category: p.category || 'Otros',
+      note: 'del inventario',
+      bought: false,
+    };
+  } else {
+    const r = recurringItems().find((x) => x.id === id);
+    if (!r) return;
+    item = {
+      id: store.uid(),
+      name: r.name,
+      qty: Math.max(0, Number(r.qty) || 0),
+      unit: r.unit || '',
+      category: r.category || 'Otros',
+      note: '',
+      bought: false,
+    };
+  }
+
+  if (items.some((i) => String(i.name || '').trim().toLowerCase() === item.name.trim().toLowerCase())) {
+    return toast('Ya está en la lista', 'error');
+  }
+
+  store.update((s) => {
+    s.shopping = s.shopping || [];
+    s.shopping.push(item);
+    noteRecurring(s, item); // para que vuelva a salir en “Recurrentes”
+  });
+  toast(`${item.name} añadido a la lista 🛒`);
+  renderCompras(root);
 }
 
 async function openShopForm() {
-  const { categories } = store.state;
-  const body = grid(
-    'form-grid',
-    field({ label: 'Artículo', name: 'name', required: true, placeholder: 'Ej. Hielo, carbón, pan…' }) +
-      field({ label: 'Cantidad', name: 'qty', type: 'number', min: 0, placeholder: 'Opcional' }) +
-      field({ label: 'Unidad', name: 'unit', placeholder: 'uds., paquetes, kilos…', value: 'uds.' }) +
-      field({ label: 'Categoría', name: 'category', type: 'select', value: categories[0], options: categories }) +
-      field({ label: 'Nota', name: 'note', placeholder: 'Marca, tienda, tamaño…' })
-  );
+  const { categories, inventory } = store.state;
+
+  // Nombres ya conocidos (recurrentes + inventario) para autocompletar mientras escribes
+  const names = [...new Set([...recurringItems().map((r) => r.name), ...inventory.map((p) => p.name)])];
+  const datalist = names.length
+    ? `<datalist id="dl-shopNames">${names.map((n) => `<option value="${esc(n)}"></option>`).join('')}</datalist>`
+    : '';
+
+  const body =
+    datalist +
+    grid(
+      'form-grid',
+      field({
+        label: 'Artículo',
+        name: 'name',
+        required: true,
+        placeholder: 'Ej. Hielo, carbón, pan…',
+        list: names.length ? 'dl-shopNames' : '',
+      }) +
+        field({ label: 'Cantidad', name: 'qty', type: 'number', min: 0, placeholder: 'Opcional' }) +
+        field({ label: 'Unidad', name: 'unit', placeholder: 'uds., paquetes, kilos…', value: 'uds.' }) +
+        field({ label: 'Categoría', name: 'category', type: 'select', value: categories[0], options: categories }) +
+        field({ label: 'Nota', name: 'note', placeholder: 'Marca, tienda, tamaño…' })
+    );
 
   const saved = await openModal({
     title: 'Añadir a la lista de compras',
@@ -200,7 +348,7 @@ async function openShopForm() {
       }
       store.update((s) => {
         s.shopping = s.shopping || [];
-        s.shopping.push({
+        const item = {
           id: store.uid(),
           name,
           qty: Math.max(0, Number(data.qty) || 0),
@@ -208,7 +356,9 @@ async function openShopForm() {
           category: data.category,
           note: (data.note || '').trim(),
           bought: false,
-        });
+        };
+        s.shopping.push(item);
+        noteRecurring(s, item); // queda en “Recurrentes” para añadirlo rápido la próxima vez
       });
       toast('Añadido a la lista 🛒');
       return true;

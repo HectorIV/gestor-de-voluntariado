@@ -20,6 +20,7 @@ function defaultState() {
     inventory: [],
     events: [],
     shopping: [],
+    recurring: [],
     categories: [
       'Alimentos',
       'Servilletas y desechables',
@@ -44,6 +45,31 @@ function migrateMembers(members) {
   });
 }
 
+/**
+ * Si los datos son antiguos y aún no existe la lista de recurrentes, se siembra
+ * con lo que ya estaba en la lista de compras (a mano), para verla desde el primer momento.
+ */
+function seedRecurring(raw) {
+  const list = raw && Array.isArray(raw.shopping) ? raw.shopping : [];
+  const out = [];
+  const seen = new Set();
+  list.forEach((it) => {
+    const name = String(it.name || '').trim();
+    const key = name.toLowerCase();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    out.push({
+      id: uid(),
+      name,
+      qty: Math.max(0, Number(it.qty) || 0),
+      unit: it.unit || '',
+      category: it.category || 'Otros',
+      times: 1,
+    });
+  });
+  return out;
+}
+
 function migrate(raw) {
   const base = defaultState();
   if (!raw || typeof raw !== 'object') return base;
@@ -55,6 +81,7 @@ function migrate(raw) {
     inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
     events: Array.isArray(raw.events) ? raw.events : [],
     shopping: Array.isArray(raw.shopping) ? raw.shopping : [],
+    recurring: Array.isArray(raw.recurring) ? raw.recurring : seedRecurring(raw),
     categories: Array.isArray(raw.categories) && raw.categories.length ? raw.categories : base.categories,
     settings: { ...base.settings, ...(raw.settings || {}) },
   };
@@ -149,6 +176,42 @@ export function setQty(p, qty) {
 
 export function lowStockItems() {
   return state.inventory.filter((p) => productStatus(p) === 'falta');
+}
+
+/**
+ * Apunta un producto como recurrente para reutilizarlo en Compras.
+ * Si ya existía, sube su contador de veces y actualiza los datos; si no, lo crea.
+ * @param {object} s estado (para usar dentro de store.update)
+ * @param {{name: string, qty?: number, unit?: string, category?: string}} item
+ */
+export function noteRecurring(s, item) {
+  const name = String((item && item.name) || '').trim();
+  if (!name) return;
+  if (!Array.isArray(s.recurring)) s.recurring = [];
+  const key = name.toLowerCase();
+  const found = s.recurring.find((r) => String(r.name || '').trim().toLowerCase() === key);
+  if (found) {
+    found.times = (Number(found.times) || 1) + 1;
+    if (Number(item.qty)) found.qty = Math.max(0, Number(item.qty));
+    if (item.unit) found.unit = item.unit;
+    if (item.category) found.category = item.category;
+    return;
+  }
+  s.recurring.push({
+    id: uid(),
+    name,
+    qty: Math.max(0, Number(item.qty) || 0),
+    unit: item.unit || '',
+    category: item.category || 'Otros',
+    times: 1,
+  });
+}
+
+/** Recurrentes ordenados por veces usados (lo más repetido primero). */
+export function recurringItems() {
+  return [...(Array.isArray(state.recurring) ? state.recurring : [])].sort(
+    (a, b) => (Number(b.times) || 0) - (Number(a.times) || 0)
+  );
 }
 
 export function upcomingEvents() {

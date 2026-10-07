@@ -28,12 +28,13 @@ internet**.
 - **Los datos se guardan** en el navegador (`localStorage`), también sin conexión, y
   sobreviven a cerrar la app. No se sincronizan entre dispositivos: usa **⬇ Exportar /
   ⬆ Importar** para pasarlos.
-- Al cambiar la app, sube la versión en `sw.js` (`const VERSION = 'v5'`, …) para que
+- Al cambiar la app, sube la versión en `sw.js` (`const VERSION = 'v9'`, …) para que
   los usuarios carguen la versión nueva sin cachés viejas.
 - Los iconos se generan con `python tools/generate_icons.py` (requiere `pip install pillow`).
 
 Los datos se guardan automáticamente en el `localStorage` del navegador.
 En el menú lateral hay botones para **exportar** una copia de seguridad en JSON e **importarla**.
+En móvil el menú se abre con **☰** y se cierra con **✕**, tocando fuera del menú o con **Escape**.
 
 ## Secciones
 
@@ -86,7 +87,12 @@ En el menú lateral hay botones para **exportar** una copia de seguridad en JSON
 - **Marca lo que compras** con la casilla y queda **tachado**; el estado se guarda y
   sigue ahí aunque cambies de sección o cierres la app.
 - **＋ Añadir a la lista**: artículos sueltos que no están en el inventario
-  (hielo, carbón, pan extra…) con cantidad, unidad y nota.
+  (hielo, carbón, pan extra…) con cantidad, unidad y nota. Al escribir el nombre
+  **autocompleta** con lo que ya existe (inventario y recurrentes).
+- **🔁 Añadir rápido**: una tarjeta con pastillas para meter en la lista de un toque
+  tanto los **productos del inventario** (con su “hay X de Y”) como los **recurrentes**
+  (los artículos que más se repiten). Tiene filtro de búsqueda, no repite lo que ya
+  está en la lista y cada vez que añades algo queda apuntado como recurrente.
 - Botones: **✅ Marcar todo**, **🧹 Limpiar comprados** (borra los artículos sueltos
   comprados y destacha los del inventario) y **📋 Copiar lista** (☐/☑ en texto plano
   para pegar en WhatsApp).

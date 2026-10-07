@@ -193,6 +193,10 @@ small { font-size: .8em; }
 
 #menuToggle { display: none; font-size: 20px; }
 
+/* Cerrar el menú en móvil (el botón solo se muestra al desplegarlo) */
+.sidebar__close { display: none; margin-left: auto; color: #fff; }
+.sidebar__close:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+
 .content { padding: 24px 26px 60px; display: flex; flex-direction: column; gap: 20px; }
 
 /* ---------- Botones ---------- */
@@ -464,6 +468,44 @@ small { font-size: .8em; }
 .shop-item.is-bought .check__name { text-decoration: line-through; color: var(--muted); }
 .shop-item.is-bought .check__meta { text-decoration: line-through; color: var(--muted); }
 a.btn { text-decoration: none; }
+
+/* Añadir rápido: productos del inventario y recurrentes, en forma de pastillas */
+.quickadd__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.quickadd__head h3 { font-size: 16.5px; margin-top: 6px; }
+.quickadd__head .input--search { max-width: 280px; }
+.quickadd__groups { display: grid; gap: 14px; }
+.quickadd__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  max-width: 100%;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.chip:hover { background: var(--primary-soft); border-color: transparent; color: var(--primary-strong); }
+.chip__name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip__meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
 .qty { display: inline-flex; align-items: center; gap: 8px; }
 .qty small { color: var(--muted); }
@@ -926,6 +968,7 @@ a.btn { text-decoration: none; }
   .sidebar.is-open { transform: none; box-shadow: 0 0 60px rgba(0, 0, 0, .4); }
 
   #menuToggle { display: block; }
+  .sidebar__close { display: grid; place-items: center; }
 
   .content { padding: 18px 16px 50px; }
   .topbar { padding: 12px 16px; }

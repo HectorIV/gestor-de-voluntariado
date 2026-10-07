@@ -81,12 +81,26 @@ window.addEventListener('hashchange', render);
 
 if (!location.hash) location.hash = '#/desayunos';
 
+const sidebarEl = document.getElementById('sidebar');
+
 document.getElementById('menuToggle').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('is-open');
+  sidebarEl.classList.toggle('is-open');
+});
+
+/* Móvil: el menú se puede cerrar con el botón ✕, tocando fuera o con Escape */
+document.getElementById('sidebarClose').addEventListener('click', () => sidebarEl.classList.remove('is-open'));
+
+document.querySelector('.main').addEventListener('click', (e) => {
+  if (e.target.closest('#menuToggle')) return; // el propio botón ya abre/cierra
+  sidebarEl.classList.remove('is-open');
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') sidebarEl.classList.remove('is-open');
 });
 
 document.getElementById('nav').addEventListener('click', (e) => {
-  if (e.target.closest('.nav__item')) document.getElementById('sidebar').classList.remove('is-open');
+  if (e.target.closest('.nav__item')) sidebarEl.classList.remove('is-open');
 });
 
 /* Exportar / importar */
