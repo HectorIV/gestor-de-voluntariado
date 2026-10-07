@@ -28,7 +28,7 @@ internet**.
 - **Los datos se guardan** en el navegador (`localStorage`), también sin conexión, y
   sobreviven a cerrar la app. No se sincronizan entre dispositivos: usa **⬇ Exportar /
   ⬆ Importar** para pasarlos.
-- Al cambiar la app, sube la versión en `sw.js` (`const VERSION = 'v9'`, …) para que
+- Al cambiar la app, sube la versión en `sw.js` (`const VERSION = 'v10'`, …) para que
   los usuarios carguen la versión nueva sin cachés viejas.
 - Los iconos se generan con `python tools/generate_icons.py` (requiere `pip install pillow`).
 

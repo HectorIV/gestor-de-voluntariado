@@ -5,7 +5,7 @@
    - Si no hay internet o el servidor falla (502...), se sirve la copia guardada.
    Cambia VERSION cuando cambien los archivos para limpiar la caché vieja. */
 
-const VERSION = 'v9';
+const VERSION = 'v10';
 const CACHE = `voluntariado-${VERSION}`;
 
 const ASSETS = [

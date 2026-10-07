@@ -202,18 +202,18 @@ function drawCompras(root) {
 /* ---------- Añadir rápido (inventario + recurrentes) ---------- */
 
 function chipInventory(p) {
-  return `<button type="button" class="chip" data-quick="inv" data-id="${p.id}" title="Añadir a la lista">
-      <span class="chip__name">${esc(p.name)}</span>
-      <span class="chip__meta">${formatNumber(p.qty)} / ${formatNumber(p.min)} ${esc(p.unit || 'u.')}</span>
+  return `<button type="button" class="qchip" data-quick="inv" data-id="${p.id}" title="Añadir a la lista">
+      <span class="qchip__name">${esc(p.name)}</span>
+      <span class="qchip__meta">${formatNumber(p.qty)} / ${formatNumber(p.min)} ${esc(p.unit || 'u.')}</span>
     </button>`;
 }
 
 function chipRecurring(r) {
   const times = Number(r.times) || 1;
   const stock = Number(r.qty) ? `${formatNumber(r.qty)} ${esc(r.unit || 'u.')}` : '';
-  return `<button type="button" class="chip" data-quick="rec" data-id="${r.id}" title="Añadir a la lista">
-      <span class="chip__name">${esc(r.name)}</span>
-      <span class="chip__meta">${stock ? `${stock} · ` : ''}×${formatNumber(times)}</span>
+  return `<button type="button" class="qchip" data-quick="rec" data-id="${r.id}" title="Añadir a la lista">
+      <span class="qchip__name">${esc(r.name)}</span>
+      <span class="qchip__meta">${stock ? `${stock} · ` : ''}×${formatNumber(times)}</span>
     </button>`;
 }
 

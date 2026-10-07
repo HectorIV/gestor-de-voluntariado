@@ -489,7 +489,8 @@ a.btn { text-decoration: none; }
   color: var(--muted);
 }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.chip {
+/* Ojo: `.chip` ya existe (chips de estado en Desayunos); estos se llaman `.qchip` */
+.qchip {
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
@@ -499,13 +500,14 @@ a.btn { text-decoration: none; }
   border-radius: 999px;
   background: var(--surface-2);
   color: var(--text);
+  font-family: inherit;
   font-size: 13.5px;
   cursor: pointer;
   transition: background .15s, border-color .15s, color .15s;
 }
-.chip:hover { background: var(--primary-soft); border-color: transparent; color: var(--primary-strong); }
-.chip__name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chip__meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.qchip:hover { background: var(--primary-soft); border-color: transparent; color: var(--primary-strong); }
+.qchip__name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qchip__meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
 .qty { display: inline-flex; align-items: center; gap: 8px; }
 .qty small { color: var(--muted); }
