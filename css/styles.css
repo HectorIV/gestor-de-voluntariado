@@ -647,12 +647,19 @@ a.btn { text-decoration: none; }
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
-.card__grid h4 {
+.card__grid h4,
+.card__hist h4 {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: .05em;
   color: var(--muted);
   margin-bottom: 6px;
+}
+/* Historial de participación al pie de la tarjeta */
+.card__hist {
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+  margin-top: 12px;
 }
 
 .list { display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; }
