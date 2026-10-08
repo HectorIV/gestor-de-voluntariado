@@ -1,5 +1,6 @@
 import { store, lowStockItems, productStatus, memberTeamIds } from '../store.js';
-import { esc, statCard, formatNumber, rerender } from '../ui.js';
+import { esc, statCard, formatDate, formatNumber, rerender } from '../ui.js';
+import { estimateEvent } from '../prices.js';
 
 const PALETTE = ['#0f766e', '#2563eb', '#d97706', '#7c3aed', '#0891b2', '#be123c', '#4d7c0f', '#9333ea'];
 
@@ -35,6 +36,7 @@ function drawGraficas(root) {
     <div class="stats">
       ${statCard({ label: 'Desayunos', value: String(events.length), hint: `${done.length} realizados`, tone: 'primary' })}
       ${statCard({ label: 'Personas servidas', value: formatNumber(personas), hint: 'en desayunos realizados' })}
+      ${gastoMedioCard(events, store.state.prices, inventory)}
       ${statCard({ label: 'Voluntarios', value: String(members.length), hint: `${teams.length} equipos` })}
       ${statCard({ label: 'Stock bajo', value: String(low.length), hint: low.length ? 'productos a reponer' : 'todo en orden', tone: low.length ? 'danger' : '' })}
     </div>
@@ -83,6 +85,18 @@ function drawGraficas(root) {
       ))}
 
       ${chartCard('Stock actual del inventario', 'la línea marca la cantidad mínima', stockBars(inventory))}
+
+      ${chartCard(
+        'Gasto por desayuno',
+        'coste estimado con los precios guardados',
+        gastoChart(events, store.state.prices, inventory)
+      )}
+
+      ${chartCard(
+        'Desviación del presupuesto',
+        'cuánto se pasó o sobró en cada desayuno',
+        desviacionChart(events, store.state.prices, inventory)
+      )}
     </div>
   `;
 
@@ -147,8 +161,106 @@ function horizontalBars(items) {
     </div>`;
 }
 
-function stockBars(inventory) {
-  if (!inventory.length) return '<p class="muted chart-empty">El inventario está vacío.</p>';
+/* ---------- Gasto y presupuesto ---------- */
+
+function gastoMedioCard(events, prices, inventory) {
+  const gastos = events
+    .filter((e) => e.status !== 'cancelado')
+    .map((e) => estimateEvent(e, prices, inventory))
+    .filter((est) => est.withPrice > 0);
+  if (!gastos.length) return '';
+  const media = gastos.reduce((s, e) => s + e.total, 0) / gastos.length;
+  const conPresupuesto = events.filter((e) => Number(e.budget) > 0).length;
+  return statCard({
+    label: 'Gasto medio',
+    value: `$${media.toFixed(2)}`,
+    hint: `${gastos.length} desayuno${gastos.length === 1 ? '' : 's'} estimados${conPresupuesto ? ` · ${conPresupuesto} con presupuesto` : ''}`,
+    tone: 'primary',
+  });
+}
+
+/** Columnas de coste estimado, con la marca del presupuesto de cada desayuno. */
+function gastoChart(events, prices, inventory) {
+  const rows = [...events]
+    .filter((e) => e.status !== 'cancelado')
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+    .slice(-10)
+    .map((e) => ({ ev: e, est: estimateEvent(e, prices, inventory), budget: Math.max(0, Number(e.budget) || 0) }))
+    .filter((r) => r.est.withPrice > 0);
+
+  if (!rows.length) {
+    return '<p class="muted chart-empty">Todavía no hay precios guardados. Añádelos en la sección 💲 Precios para ver el gasto.</p>';
+  }
+
+  const max = Math.max(...rows.map((r) => Math.max(r.est.total, r.budget)), 0.01);
+
+  return `
+    <div class="gasto">
+      ${rows
+        .map((r) => {
+          const over = r.budget > 0 && r.est.total > r.budget;
+          return `
+          <div class="gasto__col" title="${esc(r.ev.title)} · ${formatDate(r.ev.date)}: estimado $${r.est.total.toFixed(2)}${r.budget ? `, presupuesto $${r.budget.toFixed(2)}` : ''}">
+            <div class="gasto__track">
+              ${
+                r.budget
+                  ? `<span class="gasto__mark" style="bottom:${(r.budget / max) * 100}%" title="Presupuesto $${r.budget.toFixed(2)}"></span>`
+                  : ''
+              }
+              <div class="gasto__bar ${over ? 'is-over' : ''}" style="height:${Math.max(3, (r.est.total / max) * 100)}%"></div>
+            </div>
+            <span class="gasto__label">$${r.est.total.toFixed(0)}</span>
+          </div>`;
+        })
+        .join('')}
+    </div>
+    <p class="chart-legend">
+      <span class="dot"></span> coste estimado
+      <span class="gasto__mark gasto__mark--legend"></span> presupuesto del desayuno
+    </p>`;
+}
+
+/** Barra por desayuno: negativo = se pasó del presupuesto, positivo = sobró. */
+function desviacionChart(events, prices, inventory) {
+  const rows = [...events]
+    .filter((e) => e.status !== 'cancelado' && Number(e.budget) > 0)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+    .slice(-10)
+    .map((e) => {
+      const est = estimateEvent(e, prices, inventory);
+      return { ev: e, diff: Math.max(0, Number(e.budget) || 0) - est.total, est };
+    })
+    .filter((r) => r.est.withPrice > 0);
+
+  if (!rows.length) {
+    return '<p class="muted chart-empty">Hacen falta desayunos con presupuesto y precios guardados.</p>';
+  }
+
+  const max = Math.max(...rows.map((r) => Math.abs(r.diff)), 0.01);
+
+  return `
+    <div class="hbars hbars--split">
+      ${rows
+        .map((r) => {
+          const pct = (Math.abs(r.diff) / max) * 50;
+          const over = r.diff < 0;
+          return `
+          <div class="hbar hbar--split" title="${esc(r.ev.title)} · ${formatDate(r.ev.date)}: ${over ? 'se pasó' : 'sobró'} $${Math.abs(r.diff).toFixed(2)}">
+            <span class="hbar__label">${esc(r.ev.title).slice(0, 22)}</span>
+            <div class="hbar__split">
+              <span class="hbar__split-neg" style="width:50%"></span>
+              <span class="hbar__split-pos" style="width:50%"></span>
+              <span class="hbar__split-fill ${over ? 'is-over' : ''}" style="${over ? 'right' : 'left'}:50%;width:${pct}%"></span>
+            </div>
+            <span class="hbar__value">${over ? '-' : '+'}$${Math.abs(r.diff).toFixed(0)}</span>
+          </div>`;
+        })
+        .join('')}
+    </div>
+    <p class="chart-legend"><span class="dot dot--danger"></span> se pasó <span class="dot"></span> sobró</p>`;
+}
+
+function stockBars(inventory) {  if (!inventory.length) return '<p class="muted chart-empty">El inventario está vacío.</p>';
   const max = Math.max(...inventory.map((p) => Math.max(Number(p.qty), Number(p.min || 0))), 1);
   return `
     <div class="hbars">

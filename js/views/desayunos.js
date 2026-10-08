@@ -2,6 +2,7 @@ import { store, productById, memberById, teamById, teamsOfMember, memberTeamIds,
 import { esc, toast, openModal, field, grid, emptyState, statCard, formatDate, formatDateShort, formatNumber, confirmDialog, copyText, rerender } from '../ui.js';
 import { openPhotoManager } from './fotos.js';
 import { deletePhotos } from '../photos.js';
+import { estimateEvent, estimateText } from '../prices.js';
 
 const STATUS = {
   planificado: { label: 'Planificado', tone: 'info' },
@@ -118,7 +119,6 @@ function drawDesayunos(root) {
 }
 
 /* ---------- Copiar como texto (WhatsApp, etc.) ---------- */
-
 /**
  * Historial de participación agrupado por equipo: [[equipo, [nombres]], …].
  * Usa los nombres y equipos guardados en el momento de cerrar, así que se
@@ -162,6 +162,18 @@ function eventText(id) {
     `🍽 ${formatNumber(ev.people || 0)} personas · Estado: ${status}`,
   ];
   if (Number(ev.budget)) lines.push(`💰 Presupuesto: ${formatNumber(ev.budget)}`);
+
+  // Estimación de coste con los precios guardados (si los hay).
+  const est = estimateEvent(ev, store.state.prices, store.state.inventory);
+  if (est.withPrice) {
+    lines.push(`🧮 Coste estimado: $${est.total.toFixed(2)}`);
+    if (Number(ev.budget)) {
+      const diff = Number(ev.budget) - est.total;
+      lines.push(diff >= 0 ? `✅ Sobran $${diff.toFixed(2)}` : `⚠️ Se pasa $${(-diff).toFixed(2)}`);
+    }
+    if (est.missing.length) lines.push(`❓ Sin precio: ${est.missing.join(', ')}`);
+  }
+
   if (ev.notes) lines.push(`📝 ${ev.notes}`);
 
   const items = ev.items || [];
@@ -202,6 +214,56 @@ function eventText(id) {
     lines.push('', '✅ Descontado del inventario');
   }
   return lines.join('\n');
+}
+
+/**
+ * Bloque "Presupuesto vs coste estimado" de la tarjeta: cálculo en vivo con
+ * los precios guardados. Solo se pinta si el desayuno tiene productos.
+ */
+function budgetWidget(ev) {
+  if (!(ev.items || []).length) return '';
+  const est = estimateEvent(ev, store.state.prices, store.state.inventory);
+  if (!est.withPrice) return '';
+
+  const budget = Math.max(0, Number(ev.budget) || 0);
+  if (!budget) {
+    return `
+      <div class="budget budget--muted">
+        <div class="budget__head">
+          <div>
+            <strong>Coste estimado</strong>
+            <span class="cell-sub">${est.withPrice} de ${est.items} productos con precio</span>
+          </div>
+          <span class="badge badge--muted">$${est.total.toFixed(2)}</span>
+        </div>
+        <p class="budget__missing">Pon un presupuesto al desayuno para saber si alcanza.</p>
+      </div>`;
+  }
+
+  const diff = budget - est.total;
+  const pct = Math.min(100, Math.round((est.total / budget) * 100));
+  let tone = 'ok';
+  if (diff < 0) tone = 'danger';
+  else if (pct >= 90) tone = 'warn';
+
+  return `
+    <div class="budget budget--${tone}">
+      <div class="budget__head">
+        <div>
+          <strong>Presupuesto</strong>
+          <span class="cell-sub">${est.withPrice} de ${est.items} productos con precio</span>
+        </div>
+        <span class="badge badge--${tone === 'danger' ? 'danger' : tone === 'warn' ? 'warn' : 'ok'}">
+          ${diff >= 0 ? `Sobran $${diff.toFixed(2)}` : `Faltan $${(-diff).toFixed(2)}`}
+        </span>
+      </div>
+      <div class="budget__bar"><div class="budget__fill" style="width:${pct}%"></div></div>
+      <div class="budget__nums">
+        <span>Estimado <strong>$${est.total.toFixed(2)}</strong></span>
+        <span>Presupuesto <strong>$${budget.toFixed(2)}</strong></span>
+      </div>
+      ${est.missing.length ? `<p class="budget__missing">❓ Sin precio: ${est.missing.map(esc).join(', ')}</p>` : ''}
+    </div>`;
 }
 
 function eventCard(ev) {
@@ -245,6 +307,8 @@ function eventCard(ev) {
       </div>
 
       ${ev.notes ? `<p class="card__notes">${esc(ev.notes)}</p>` : ''}
+
+      ${budgetWidget(ev)}
 
       <div class="card__grid">
         <div>

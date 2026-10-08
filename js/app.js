@@ -40,8 +40,8 @@ const ROUTES = {
     render: renderFotos,
   },
   precios: {
-    title: 'Buscar precios',
-    subtitle: 'Comparación de precios en tiendas (fase futura)',
+    title: 'Precios y presupuesto',
+    subtitle: 'A cuánto está cada producto y si el desayuno cabe en el presupuesto',
     render: renderPrecios,
   },
 };

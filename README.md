@@ -133,9 +133,27 @@ En móvil el menú se abre con **☰** y se cierra con **✕**, tocando fuera de
 - Las fotos **no** viajan en el JSON de exportar/importar (son archivos, no datos);
   se quedan en el dispositivo donde se subieron.
 
-### 💲 Buscar precios (futuro)
-- Sección reservada para comparar precios en tiendas. Es la parte más compleja
-  (hay que extraer precios de las páginas de cada tienda), así que queda para después.
+### 💲 Precios y presupuesto
+- **Precios manuales**: anotas a cuánto está cada producto (normalmente en
+  *El Machetazo*) con tres formas:
+  - **Por unidad** — "Leche entera 1L" → $1.25 por litro.
+  - **Por peso** — "Manzanas" → $2.50 por kg.
+  - **Por tramos** — "Manzanas" → 1 kg $2.50 · 5 kg $2.20 · 10 kg $2.00.
+    Al calcular se usa el tramo de la cantidad más alta que se alcance
+    (si necesitas 7 kg, se usa el precio de 5 kg).
+- **Captura rápida desde el móvil**: copias el texto del supermercado, lo pegas
+  en **📥 Capturar varios** y la app saca los precios y los cruza con tu
+  inventario por nombre parecido. Los que coinciden **actualizan** el precio
+  que ya tenías en vez de duplicarlo.
+- **Cálculo en vivo del presupuesto**: cada desayuno con presupuesto muestra
+  *estimado vs presupuesto* con barra y aviso ("sobran $9.70" / "faltan $6.44"),
+  y avisa de los productos que todavía no tienen precio.
+- **Historial de precios** (📈): guarda cada cambio con su fecha, así se ve si
+  un producto está subiendo o bajando.
+- **Gráficas**: "Gasto por desayuno" (con la marca del presupuesto) y
+  "Desviación del presupuesto" (cuánto se pasó o sobró en cada uno).
+- **Exportar CSV** para llevarlo a Excel, y los precios **sí** viajan en el
+  JSON de exportar/importar (así un voluntario le pasa su lista a otro).
 
 ## Estructura
 
@@ -150,6 +168,7 @@ js/store.js         · estado + guardado en localStorage
 js/ui.js            · utilidades (modal, toast, campos, formato)
 js/photos.js         · fotos: IndexedDB, reducción de imágenes y miniaturas
 js/collage.js        · collage en canvas (plantillas y tamaños para redes)
+js/prices.js         · precios: cruce de nombres, tramos y cálculo de presupuesto
 js/views/*.js       · vistas (desayunos, inventario, compras, miembros, gráficas, fotos, precios)
 tools/              · script que genera los iconos
 ```

@@ -684,6 +684,65 @@ a.btn { text-decoration: none; }
   margin-top: 12px;
 }
 
+/* ---------- Presupuesto vs coste estimado ---------- */
+
+.budget {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.budget--ok { border-color: rgba(23, 128, 61, .35); background: var(--ok-soft); }
+.budget--warn { border-color: rgba(217, 119, 0, .35); background: var(--warn-soft); }
+.budget--danger { border-color: rgba(190, 18, 60, .35); background: var(--danger-soft); }
+.budget--muted { background: var(--surface-2); }
+
+.budget__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.budget__head strong { font-size: 14.5px; }
+.budget__head .cell-sub { display: block; }
+
+.budget__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.budget__fill { height: 100%; background: var(--primary); }
+.budget--warn .budget__fill { background: var(--warn); }
+.budget--danger .budget__fill { background: var(--danger); }
+
+.budget__nums {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.budget__nums strong { color: var(--text); font-size: 13.5px; }
+
+.budget__missing { font-size: 12.5px; color: var(--muted); }
+
+/* Filas de tramos: en móvil las dos cajas a partes iguales (79 / 110 / 40 las
+   dejaba demasiado estrechas y no se leía la cantidad). */
+@media (max-width: 760px) {
+  .item-row--tier { grid-template-columns: 1fr 1fr 40px; }
+}
+
+/* Lista de resultados de la captura de precios */
+.captura-list { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; }
+.captura-list .check { align-items: flex-start; }
+.captura-list .check input { margin-top: 3px; }
+
 .list { display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; }
 .list li { padding-left: 14px; position: relative; }
 .list li::before { content: '•'; position: absolute; left: 2px; color: var(--primary); }
@@ -1004,6 +1063,64 @@ a.btn { text-decoration: none; }
 }
 
 .hbar__value { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Columnas de gasto (presupuesto vs coste estimado) */
+.gasto { display: flex; align-items: flex-end; gap: 10px; min-height: 150px; }
+.gasto__col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; }
+.gasto__track {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  max-width: 46px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.gasto__bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(180deg, #14b8a6, var(--primary));
+  border-radius: 7px 7px 0 0;
+  transition: height .25s ease;
+}
+.gasto__bar.is-over { background: linear-gradient(180deg, #f43f5e, var(--danger)); }
+.gasto__mark {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  height: 0;
+  border-top: 2px dashed var(--text);
+  opacity: .65;
+  z-index: 2;
+}
+.gasto__mark--legend {
+  position: static;
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 2px dashed var(--text);
+  opacity: .65;
+}
+.gasto__label { font-size: 11px; color: var(--muted); font-weight: 700; }
+
+/* Desviación del presupuesto (a la izquierda sobra, a la derecha se pasa) */
+.hbar--split { grid-template-columns: minmax(90px, 34%) 1fr auto; }
+.hbar__split { position: relative; height: 14px; display: flex; }
+.hbar__split-neg,
+.hbar__split-pos { height: 100%; }
+.hbar__split-neg { background: var(--danger-soft); }
+.hbar__split-pos { background: var(--ok-soft); }
+.hbar__split-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--primary);
+  border-radius: 999px;
+}
+.hbar__split-fill.is-over { background: var(--danger); }
 
 /* Dona */
 .donut-wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }

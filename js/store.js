@@ -21,6 +21,7 @@ function defaultState() {
     events: [],
     shopping: [],
     recurring: [],
+    prices: [], // precios por producto (ver js/prices.js)
     categories: [
       'Alimentos',
       'Servilletas y desechables',
@@ -82,6 +83,7 @@ function migrate(raw) {
     events: Array.isArray(raw.events) ? raw.events : [],
     shopping: Array.isArray(raw.shopping) ? raw.shopping : [],
     recurring: Array.isArray(raw.recurring) ? raw.recurring : seedRecurring(raw),
+    prices: Array.isArray(raw.prices) ? raw.prices : [],
     categories: Array.isArray(raw.categories) && raw.categories.length ? raw.categories : base.categories,
     settings: { ...base.settings, ...(raw.settings || {}) },
   };
