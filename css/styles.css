@@ -44,6 +44,7 @@ body {
 body.no-scroll { overflow: hidden; }
 
 h1, h2, h3, h4 { margin: 0; line-height: 1.25; }
+figure, figcaption { margin: 0; } /* los <figure> traen 40px de fábrica: estrechaba la galería */
 p { margin: 0; }
 ul { margin: 0; padding: 0; list-style: none; }
 small { font-size: .8em; }
@@ -115,7 +116,8 @@ small { font-size: .8em; }
   font-weight: 500;
   transition: background .15s, color .15s;
   position: relative;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* si no cabe, el badge baja a su línea (debajo del texto) */
+  min-width: 0;
 }
 
 .nav__item:hover { background: rgba(255, 255, 255, .07); color: #fff; }
@@ -128,8 +130,21 @@ small { font-size: .8em; }
 
 .nav__icon { font-size: 17px; }
 
+.nav__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .nav__badge {
-  margin-left: auto;
+  /* Si no cabe a la derecha del texto, baja a su propia línea alineada
+     bajo la etiqueta (antes quedaba suelta y descentrada). */
+  margin-left: 33px; /* arranca justo debajo del texto (icono + hueco) */
+  margin-top: 2px;
+  align-self: flex-start;
+  flex-shrink: 0;
   font-size: 10px;
   background: rgba(255, 255, 255, .14);
   color: #b9d4d1;
@@ -137,6 +152,7 @@ small { font-size: .8em; }
   border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: .04em;
+  white-space: nowrap;
 }
 
 .sidebar__footer {
@@ -237,7 +253,7 @@ small { font-size: .8em; }
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 14px;
 }
 
@@ -435,7 +451,8 @@ small { font-size: .8em; }
 .row-actions { display: flex; gap: 2px; justify-content: flex-end; white-space: nowrap; }
 
 /* En móvil la tabla deja de ser una rejilla con scroll horizontal (se veía rota)
-   y pasa a fichas apiladas: cada celda con su etiqueta, sin desplazamiento lateral. */
+   y pasa a fichas apiladas: la etiqueta va encima del valor, así nada se sale
+   aunque el nombre o los equipos sean largos. */
 @media (max-width: 760px) {
   .table-wrap { overflow-x: visible; }
   .table { min-width: 0; display: block; }
@@ -449,24 +466,29 @@ small { font-size: .8em; }
   .table tbody tr:last-child { border-bottom: none; }
   .table tbody tr:hover { background: transparent; }
   .table td {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
+    display: block;
     padding: 5px 0;
     border-bottom: none;
     text-align: left;
   }
   .table td::before {
     content: attr(data-label);
-    flex: 0 0 auto;
-    font-size: 11.5px;
+    display: block;
+    font-size: 11px;
     letter-spacing: .05em;
     text-transform: uppercase;
     color: var(--muted);
+    margin-bottom: 2px;
   }
-  .table td:not([data-label]) { justify-content: flex-end; padding-top: 8px; }
-  .table .num, .table td.num { text-align: right; }
+  /* Celdas sin contenido (<Contacto —, Notas —>) ensuciaban la ficha */
+  .table td.is-empty { display: none; }
+  .table td > * { min-width: 0; overflow-wrap: anywhere; }
+  .table td .cell-title,
+  .table td .cell-sub { display: block; }
+  /* La fila de botones no lleva etiqueta y se queda a la derecha */
+  .table td:not([data-label]) { display: flex; justify-content: flex-end; padding-top: 8px; }
+  .table td:not([data-label])::before { display: none; }
+  .table .num, .table td.num { text-align: left; }
 }
 
 .tag {
@@ -584,7 +606,7 @@ a.btn { text-decoration: none; }
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr));
   gap: 14px;
 }
 
@@ -606,7 +628,7 @@ a.btn { text-decoration: none; }
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -644,7 +666,7 @@ a.btn { text-decoration: none; }
 
 .card__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 14px;
 }
 .card__grid h4,
@@ -746,7 +768,7 @@ a.btn { text-decoration: none; }
 
 .coming-soon__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 14px;
   width: 100%;
 }
@@ -864,7 +886,7 @@ a.btn { text-decoration: none; }
 
 .chart-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(330px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -1012,7 +1034,7 @@ a.btn { text-decoration: none; }
 
 .gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
   gap: 14px;
 }
 
@@ -1076,6 +1098,7 @@ a.btn { text-decoration: none; }
 }
 .collage__field .input { min-width: 210px; }
 .collage__hint { font-size: 12.5px; margin-left: auto; padding-bottom: 8px; }
+.collage__check { align-self: flex-end; padding-bottom: 10px; font-size: 13.5px; font-weight: 600; }
 .collage__preview {
   display: flex;
   flex-wrap: wrap;
@@ -1170,7 +1193,9 @@ a.btn { text-decoration: none; }
   .collage__field { width: 100%; }
   .collage__field .input { min-width: 0; width: 100%; }
   .collage__hint { margin-left: 0; padding-bottom: 0; }
-  .collage__preview img { width: 100%; }
+  .collage__check { align-self: flex-start; padding-bottom: 0; }
+  /* una historia 1080×1920 a ancho completo quedaba interminable */
+  .collage__preview img { width: 100%; max-height: 440px; object-fit: contain; }
   .photo-row { flex-wrap: wrap; }
   .photo-row .input { flex: 1 1 100%; }
 }

@@ -83,8 +83,8 @@ function drawMiembros(root) {
                     <tr>
                       <td data-label="Nombre"><div class="cell-title">${esc(m.name)}</div></td>
                       <td data-label="Equipos">${memberTeams.length ? memberTeams.map((t) => `<span class="tag tag--team">${esc(t.name)}</span>`).join(' ') : '<span class="muted">Sin equipo</span>'}</td>
-                      <td data-label="Contacto">${[m.phone, m.email].filter(Boolean).map((v) => `<div class="cell-sub">${esc(v)}</div>`).join('') || '<span class="muted">—</span>'}</td>
-                      <td data-label="Notas">${m.notes ? `<span class="cell-sub">${esc(m.notes)}</span>` : '—'}</td>
+                      <td data-label="Contacto" ${[m.phone, m.email].filter(Boolean).length ? '' : 'class="is-empty"'}>${[m.phone, m.email].filter(Boolean).map((v) => `<div class="cell-sub">${esc(v)}</div>`).join('') || '<span class="muted">—</span>'}</td>
+                      <td data-label="Notas" ${m.notes ? '' : 'class="is-empty"'}>${m.notes ? `<span class="cell-sub">${esc(m.notes)}</span>` : '—'}</td>
                       <td class="row-actions">
                         <button class="icon-btn" data-edit-member="${m.id}" title="Editar">✏️</button>
                         <button class="icon-btn" data-del-member="${m.id}" title="Eliminar">🗑️</button>

@@ -15,6 +15,7 @@ import { PLANTILLAS, FORMATOS, buildCollage, previewUrl, downloadBlob } from '..
 let filtro = 'todas';
 let plantillaId = '2x2';
 let formatoId = 'cuadrado';
+let colTitulo = true; // barra con el nombre y la fecha en la imagen
 let vistaPrevia = null; // { dataUrl, blob }
 const seleccion = new Set();
 const urls = []; // object URLs de las miniaturas, para liberarlas al repintar
@@ -160,6 +161,16 @@ function drawFotos(root) {
       renderFotos(root);
     });
   }
+  const chkTitulo = root.querySelector('#colTitulo');
+  if (chkTitulo) {
+    chkTitulo.addEventListener('change', (e) => {
+      colTitulo = e.target.checked;
+      if (vistaPrevia) {
+        vistaPrevia = null; // el título cambia la imagen: se regenera al crearla
+        renderFotos(root);
+      }
+    });
+  }
   root.querySelector('#colBuild')?.addEventListener('click', () => crearCollage(visibles, root));
   root.querySelector('#colDownload')?.addEventListener('click', () => {
     if (!vistaPrevia?.blob) return;
@@ -217,7 +228,7 @@ function collagePanel(visibles) {
   const elegidas = visibles.filter(({ p }) => seleccion.has(p.id)).length;
   const hint = elegidas
     ? `${elegidas} elegida${elegidas === 1 ? '' : 's'} · hasta ${celdas} por collage`
-    : `Sin elegir: se usarán las ${Math.min(celdas, visibles.length)} primeras`;
+    : `Sin elegir: se usarán las ${Math.min(celdas, visibles.length)} primeras · la plantilla se rellena sola`;
 
   return `
   <div class="collage">
@@ -233,6 +244,10 @@ function collagePanel(visibles) {
         <select class="input" id="colFormato">
           ${FORMATOS.map((f) => `<option value="${f.id}" ${f.id === formatoId ? 'selected' : ''}>${f.label}</option>`).join('')}
         </select>
+      </label>
+      <label class="check collage__check">
+        <input type="checkbox" id="colTitulo" ${colTitulo ? 'checked' : ''} />
+        <span class="check__name">Título con nombre y fecha</span>
       </label>
       <button class="btn btn--primary" id="colBuild" ${visibles.length ? '' : 'disabled'}>🖼 Crear collage</button>
       <span class="collage__hint muted">${hint}</span>
@@ -349,9 +364,17 @@ async function crearCollage(visibles, root) {
   }
 
   toast('Montando el collage…');
+  // Título: el nombre y la fecha del desayuno del que son las fotos
+  const ev0 = usar[0].ev || {};
+  const titulo = colTitulo
+    ? {
+        principal: ev0.title || 'Desayuno',
+        secundario: [ev0.date ? formatDate(ev0.date) : '', ev0.place || ''].filter(Boolean).join(' · '),
+      }
+    : null;
   let res = null;
   try {
-    res = await buildCollage(blobs, { plantilla: plantillaId, formato: formatoId });
+    res = await buildCollage(blobs, { plantilla: plantillaId, formato: formatoId, titulo });
   } catch (err) {
     console.warn('No se pudo montar el collage:', err);
   }

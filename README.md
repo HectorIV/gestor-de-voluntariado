@@ -124,8 +124,11 @@ En móvil el menú se abre con **☰** y se cierra con **✕**, tocando fuera de
 - **Galería en cuadrícula** con el pie de cada foto (qué hizo el equipo), que se
   puede cambiar después (✏️) y descargar una a una (⬇️).
 - **Collage para redes**: eliges plantilla (**2×2**, **3×3** o **tira vertical**) y
-  tamaño (**1080×1080** cuadrado o **1080×1920** historia), ves la vista previa y lo
-  descargas en JPG listo para Instagram/Facebook.
+  tamaño (**1080×1080** cuadrado o **1080×1920** historia). Las fotos se reparten en
+  filas completas —con 1 ocupa todo el lienzo, con 3 van dos y una grande— para que
+  **no queden huecos vacíos**; salen con esquinas redondeadas, sombra y fondo con
+  degradado, y (opción marcada por defecto) una barra con el nombre y la fecha del
+  desayuno. Ves la vista previa y lo descargas en JPG listo para Instagram/Facebook.
 - Las fotos se reducen a 1600 px antes de guardarse para no ocupar de más.
 - Las fotos **no** viajan en el JSON de exportar/importar (son archivos, no datos);
   se quedan en el dispositivo donde se subieron.
