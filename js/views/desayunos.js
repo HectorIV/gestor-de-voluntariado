@@ -113,6 +113,7 @@ function eventText(id) {
     `📅 ${formatDateShort(ev.date)} · 🏥 ${ev.area || 'área por definir'}`,
     `🍽 ${formatNumber(ev.people || 0)} personas · Estado: ${status}`,
   ];
+  if (Number(ev.budget)) lines.push(`💰 Presupuesto: ${formatNumber(ev.budget)}`);
   if (ev.notes) lines.push(`📝 ${ev.notes}`);
 
   const items = ev.items || [];
@@ -189,6 +190,7 @@ function eventCard(ev) {
         <span>📅 ${formatDate(ev.date)}</span>
         <span>🏥 ${esc(ev.area || 'Área por definir')}</span>
         <span>🍽 ${formatNumber(ev.people || 0)} personas</span>
+        ${Number(ev.budget) ? `<span>💰 ${formatNumber(ev.budget)} de presupuesto</span>` : ''}
       </div>
 
       ${ev.notes ? `<p class="card__notes">${esc(ev.notes)}</p>` : ''}
@@ -484,6 +486,7 @@ async function openEventForm(id) {
         field({ label: 'Fecha', name: 'date', type: 'date', required: true, value: existing?.date || new Date().toISOString().slice(0, 10) }) +
         field({ label: 'Área / sala', name: 'area', value: existing?.area || '', placeholder: 'Ej. Pabellón 3, auditorio…' }) +
         field({ label: 'Personas a servir', name: 'people', type: 'number', min: 0, value: existing?.people || 0 }) +
+        field({ label: 'Presupuesto', name: 'budget', type: 'number', min: 0, step: 'any', placeholder: 'Opcional', value: existing?.budget || '' }) +
         field({ label: 'Estado', name: 'status', type: 'select', value: existing?.status || 'planificado', options: Object.entries(STATUS).map(([value, cfg]) => ({ value, label: cfg.label })) }) +
         field({ label: 'Notas', name: 'notes', type: 'textarea', value: existing?.notes || '', placeholder: 'Indicaciones, horarios, contactos…' })
     )}
@@ -605,6 +608,7 @@ async function openEventForm(id) {
           date: data.date || '',
           area: (data.area || '').trim(),
           people: Math.max(0, Number(data.people) || 0),
+          budget: Math.max(0, Number(data.budget) || 0),
           status: data.status || 'planificado',
           notes: (data.notes || '').trim(),
           items: draftItems.filter((i) => i.productId),

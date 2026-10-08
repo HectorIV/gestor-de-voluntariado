@@ -173,7 +173,7 @@ export function openModal({ title, body, saveLabel = 'Guardar', onSubmit, onMoun
 
 /* ---------- Formularios ---------- */
 
-export function field({ label, name, type = 'text', value = '', required = false, placeholder = '', min, options, hint, className = '', list }) {
+export function field({ label, name, type = 'text', value = '', required = false, placeholder = '', min, step, options, hint, className = '', list }) {
   let control;
   if (type === 'select') {
     const opts = (options || [])
@@ -189,9 +189,10 @@ export function field({ label, name, type = 'text', value = '', required = false
     control = `<textarea class="input" id="f-${name}" name="${name}" rows="3" placeholder="${esc(placeholder)}">${esc(value)}</textarea>`;
   } else {
     const minAttr = min !== undefined && min !== null ? `min="${esc(min)}"` : '';
+    const stepAttr = step !== undefined && step !== null ? `step="${esc(step)}"` : '';
     const listAttr = list ? `list="${esc(list)}"` : '';
     control = `<input class="input" id="f-${name}" name="${name}" type="${type}" value="${esc(value)}"
-      placeholder="${esc(placeholder)}" ${minAttr} ${listAttr} ${required ? 'required' : ''} />`;
+      placeholder="${esc(placeholder)}" ${minAttr} ${stepAttr} ${listAttr} ${required ? 'required' : ''} />`;
   }
 
   return `
