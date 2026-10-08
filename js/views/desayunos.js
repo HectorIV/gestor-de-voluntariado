@@ -1,5 +1,7 @@
 import { store, productById, memberById, teamById, teamsOfMember, memberTeamIds, isTeamless, upcomingEvents, lowStockItems, setQty } from '../store.js';
 import { esc, toast, openModal, field, grid, emptyState, statCard, formatDate, formatDateShort, formatNumber, confirmDialog, copyText, rerender } from '../ui.js';
+import { openPhotoManager } from './fotos.js';
+import { deletePhotos } from '../photos.js';
 
 const STATUS = {
   planificado: { label: 'Planificado', tone: 'info' },
@@ -60,6 +62,7 @@ function drawDesayunos(root) {
         store.update((s) => {
           s.events = s.events.filter((x) => x.id !== ev.id);
         });
+        deletePhotos((ev.photos || []).map((p) => p.id)); // sus fotos ya no tienen donde vivir
         toast('Desayuno eliminado');
         renderDesayunos(root);
       }
@@ -82,6 +85,9 @@ function drawDesayunos(root) {
   );
   root.querySelectorAll('[data-part]').forEach((b) =>
     b.addEventListener('click', () => openParticipation(b.dataset.part, root))
+  );
+  root.querySelectorAll('[data-photos]').forEach((b) =>
+    b.addEventListener('click', () => openPhotoManager(b.dataset.photos))
   );
   root.querySelectorAll('[data-deduct]').forEach((b) =>
     b.addEventListener('click', () => deductInventory(b.dataset.deduct, root))
@@ -294,6 +300,7 @@ function eventCard(ev) {
             .join('')}
         </div>
         <button class="btn ${ev.participants?.length ? 'btn--ghost' : 'btn--secondary'} btn--sm" data-part="${ev.id}" title="Marcar quiénes participaron y verlo como historial">👥 ${ev.participants?.length ? `Participaron ${ev.participants.length}` : 'Participación'}</button>
+        <button class="btn btn--ghost btn--sm" data-photos="${ev.id}" title="Fotos y collage de este desayuno">🖼 Fotos${(ev.photos || []).length ? ` (${ev.photos.length})` : ''}</button>
         ${
           (ev.items || []).length
             ? `<button class="btn ${ev.used ? 'btn--secondary' : 'btn--primary'} btn--sm" data-close="${ev.id}" title="Registrar lo realmente usado y ajustar el inventario">🏁 ${ev.used ? 'Ajustar cierre' : 'Cierre con uso real'}</button>`

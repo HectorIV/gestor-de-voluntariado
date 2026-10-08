@@ -117,6 +117,19 @@ En móvil el menú se abre con **☰** y se cierra con **✕**, tocando fuera de
 - **Stock actual** con la línea vertical marcando la cantidad mínima de cada producto.
 - Todo con datos reales de la app: si no hay nada registrado, muestra un aviso.
 
+### 🖼 Fotos y collage
+- Cada foto se guarda **dentro de su desayuno** (desde la tarjeta del desayuno con
+  **🖼 Fotos** o desde esta sección eligiéndolo). Funciona sin internet: los bytes
+  van a IndexedDB del propio navegador.
+- **Galería en cuadrícula** con el pie de cada foto (qué hizo el equipo), que se
+  puede cambiar después (✏️) y descargar una a una (⬇️).
+- **Collage para redes**: eliges plantilla (**2×2**, **3×3** o **tira vertical**) y
+  tamaño (**1080×1080** cuadrado o **1080×1920** historia), ves la vista previa y lo
+  descargas en JPG listo para Instagram/Facebook.
+- Las fotos se reducen a 1600 px antes de guardarse para no ocupar de más.
+- Las fotos **no** viajan en el JSON de exportar/importar (son archivos, no datos);
+  se quedan en el dispositivo donde se subieron.
+
 ### 💲 Buscar precios (futuro)
 - Sección reservada para comparar precios en tiendas. Es la parte más compleja
   (hay que extraer precios de las páginas de cada tienda), así que queda para después.
@@ -132,6 +145,8 @@ css/styles.css      · estilos, diseño responsive
 js/app.js           · rutas (#/desayunos, #/inventario…), PWA y exportar/importar
 js/store.js         · estado + guardado en localStorage
 js/ui.js            · utilidades (modal, toast, campos, formato)
-js/views/*.js       · vistas (desayunos, inventario, compras, miembros, gráficas, precios)
+js/photos.js         · fotos: IndexedDB, reducción de imágenes y miniaturas
+js/collage.js        · collage en canvas (plantillas y tamaños para redes)
+js/views/*.js       · vistas (desayunos, inventario, compras, miembros, gráficas, fotos, precios)
 tools/              · script que genera los iconos
 ```

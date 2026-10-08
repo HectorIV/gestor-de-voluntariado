@@ -5,6 +5,7 @@ import { renderInventario } from './views/inventario.js';
 import { renderCompras } from './views/compras.js';
 import { renderMiembros } from './views/miembros.js';
 import { renderGraficas } from './views/graficas.js';
+import { renderFotos } from './views/fotos.js';
 import { renderPrecios } from './views/precios.js';
 
 const ROUTES = {
@@ -33,6 +34,11 @@ const ROUTES = {
     subtitle: 'Retroalimentación gráfica de la actividad',
     render: renderGraficas,
   },
+  fotos: {
+    title: 'Fotos y collage',
+    subtitle: 'Una foto por desayuno, con su pie, y collage listo para redes',
+    render: renderFotos,
+  },
   precios: {
     title: 'Buscar precios',
     subtitle: 'Comparación de precios en tiendas (fase futura)',
@@ -45,7 +51,8 @@ const titleEl = document.getElementById('viewTitle');
 const subtitleEl = document.getElementById('viewSubtitle');
 
 function currentRoute() {
-  const hash = location.hash.replace(/^#\//, '');
+  // El hash puede llevar parámetros (#/fotos?ev=ID): la ruta es lo primero.
+  const hash = location.hash.replace(/^#\//, '').split('?')[0];
   return ROUTES[hash] ? hash : 'desayunos';
 }
 
