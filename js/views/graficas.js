@@ -1,6 +1,6 @@
 import { store, lowStockItems, productStatus, memberTeamIds } from '../store.js';
 import { esc, statCard, formatDate, formatNumber, rerender } from '../ui.js';
-import { estimateEvent } from '../prices.js';
+import { estimateEvent, desviacionMedia } from '../prices.js';
 
 const PALETTE = ['#0f766e', '#2563eb', '#d97706', '#7c3aed', '#0891b2', '#be123c', '#4d7c0f', '#9333ea'];
 
@@ -40,6 +40,8 @@ function drawGraficas(root) {
       ${statCard({ label: 'Voluntarios', value: String(members.length), hint: `${teams.length} equipos` })}
       ${statCard({ label: 'Stock bajo', value: String(low.length), hint: low.length ? 'productos a reponer' : 'todo en orden', tone: low.length ? 'danger' : '' })}
     </div>
+
+    ${alertaDesviacion(events, store.state.prices, inventory)}
 
     <div class="toolbar">
       <span class="toolbar__hint">Retroalimentación de la actividad · Hospital del Niño</span>
@@ -170,13 +172,37 @@ function gastoMedioCard(events, prices, inventory) {
     .filter((est) => est.withPrice > 0);
   if (!gastos.length) return '';
   const media = gastos.reduce((s, e) => s + e.total, 0) / gastos.length;
-  const conPresupuesto = events.filter((e) => Number(e.budget) > 0).length;
+  const desv = desviacionMedia(events, prices, inventory);
+  const hint =
+    desv.nivel === 'vacio'
+      ? `${gastos.length} desayuno${gastos.length === 1 ? '' : 's'} estimados`
+      : `${gastos.length} desayuno${gastos.length === 1 ? '' : 's'} · ${desv.arriba ? '+' : '−'}${Math.abs(desv.pct).toFixed(0)}% vs presupuesto`;
   return statCard({
     label: 'Gasto medio',
     value: `$${media.toFixed(2)}`,
-    hint: `${gastos.length} desayuno${gastos.length === 1 ? '' : 's'} estimados${conPresupuesto ? ` · ${conPresupuesto} con presupuesto` : ''}`,
-    tone: 'primary',
+    hint,
+    tone: desv.nivel === 'danger' ? 'danger' : desv.nivel === 'warn' ? 'warn' : 'primary',
   });
+}
+
+/**
+ * Aviso cuando la media de gasto se separa de la media de presupuesto.
+ * Solo se pinta si hay datos suficientes y la separación es de verdad notable.
+ */
+function alertaDesviacion(events, prices, inventory) {
+  const d = desviacionMedia(events, prices, inventory);
+  if (d.nivel === 'vacio' || d.nivel === 'ok') return '';
+  const icono = d.arriba ? '📈' : '📉';
+  const titulo = d.arriba ? 'Estás gastando más de lo previsto' : 'Estás gastando menos de lo previsto';
+  return `
+    <div class="alerta alerta--${d.nivel}" role="status">
+      <span class="alerta__icon">${icono}</span>
+      <div>
+        <strong>${titulo}</strong>
+        <p>${esc(d.mensaje)} Revisa los precios o ajusta el presupuesto de los próximos desayunos.</p>
+        <a class="btn btn--ghost btn--sm" href="#/precios">💲 Ver precios</a>
+      </div>
+    </div>`;
 }
 
 /** Columnas de coste estimado, con la marca del presupuesto de cada desayuno. */

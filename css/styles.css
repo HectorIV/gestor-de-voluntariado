@@ -743,6 +743,23 @@ a.btn { text-decoration: none; }
 .captura-list .check { align-items: flex-start; }
 .captura-list .check input { margin-top: 3px; }
 
+/* Aviso de desviación media (gasto vs presupuesto) */
+.alerta {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: var(--surface-2);
+}
+.alerta--warn { border-color: rgba(217, 119, 0, .4); background: var(--warn-soft); }
+.alerta--danger { border-color: rgba(190, 18, 60, .4); background: var(--danger-soft); }
+.alerta__icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.alerta strong { display: block; font-size: 14.5px; margin-bottom: 2px; }
+.alerta p { font-size: 13.5px; color: var(--text); margin-bottom: 8px; }
+
 .list { display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; }
 .list li { padding-left: 14px; position: relative; }
 .list li::before { content: '•'; position: absolute; left: 2px; color: var(--primary); }

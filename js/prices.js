@@ -292,8 +292,59 @@ export function deletePrice(prices, id) {
   return (prices || []).filter((p) => p.id !== id);
 }
 
-/* ---------- Exportar ---------- */
+/**
+ * Desviación media entre lo que se gasta y lo que se presupuesta.
+ * Compara la media del coste estimado con la media del presupuesto de los
+ * desayunos que tienen las dos cosas (mínimo 2 para que signifique algo).
+ * @returns {{n:number, mediaGasto:number, mediaPresupuesto:number, pct:number,
+ *            nivel:'vacio'|'ok'|'warn'|'danger', arriba:boolean, mensaje:string}}
+ */
+export function desviacionMedia(events, prices, inventory, { warn = 10, danger = 25 } = {}) {
+  const conDatos = (Array.isArray(events) ? events : [])
+    .filter((e) => e && e.status !== 'cancelado' && Number(e.budget) > 0)
+    .map((e) => ({ ev: e, est: estimateEvent(e, prices, inventory) }))
+    .filter((r) => r.est.withPrice > 0);
 
+  if (conDatos.length < 2) {
+    return {
+      n: conDatos.length,
+      mediaGasto: 0,
+      mediaPresupuesto: 0,
+      pct: 0,
+      nivel: 'vacio',
+      arriba: false,
+      mensaje:
+        conDatos.length === 1
+          ? 'Hace falta un desayuno más con presupuesto y precios para comparar.'
+          : 'Aún no hay desayunos con presupuesto y precios guardados.',
+    };
+  }
+
+  const mediaGasto = conDatos.reduce((s, r) => s + r.est.total, 0) / conDatos.length;
+  const mediaPresupuesto = conDatos.reduce((s, r) => s + Math.max(0, Number(r.ev.budget) || 0), 0) / conDatos.length;
+  const pct = mediaPresupuesto ? ((mediaGasto - mediaPresupuesto) / mediaPresupuesto) * 100 : 0;
+  const abs = Math.abs(pct);
+
+  let nivel = 'ok';
+  if (abs >= danger) nivel = 'danger';
+  else if (abs >= warn) nivel = 'warn';
+
+  const arriba = pct > 0;
+  const pctTxt = `${abs.toFixed(0)}%`;
+
+  let mensaje;
+  if (nivel === 'ok') {
+    mensaje = `En media gastas lo que presupuestas (${arriba ? '+' : '−'}${pctTxt}).`;
+  } else if (arriba) {
+    mensaje = `Gastas ${pctTxt} más de lo que presupuestas ($${mediaGasto.toFixed(2)} de $${mediaPresupuesto.toFixed(2)}).`;
+  } else {
+    mensaje = `Gastas ${pctTxt} menos de lo que presupuestas ($${mediaGasto.toFixed(2)} de $${mediaPresupuesto.toFixed(2)}).`;
+  }
+
+  return { n: conDatos.length, mediaGasto, mediaPresupuesto, pct, nivel, arriba, mensaje };
+}
+
+/* ---------- Exportar ---------- */
 /** CSV con los precios actuales (una fila por producto). */
 export function pricesToCsv(prices) {
   const rows = [['producto', 'tipo', 'precio', 'unidad', 'tienda', 'fecha', 'tramos', 'notas']];

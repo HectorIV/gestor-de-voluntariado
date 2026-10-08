@@ -148,6 +148,10 @@ En móvil el menú se abre con **☰** y se cierra con **✕**, tocando fuera de
 - **Cálculo en vivo del presupuesto**: cada desayuno con presupuesto muestra
   *estimado vs presupuesto* con barra y aviso ("sobran $9.70" / "faltan $6.44"),
   y avisa de los productos que todavía no tienen precio.
+- **Aviso de desviación media**: cuando la media de gasto de los desayunos se
+  separa de la media de presupuesto, la app lo dice arriba de Gráficas y de
+  Precios ("gastas 92% más de lo que presupuestas"), con el importe en dinero
+  y un enlace para revisarlo.
 - **Historial de precios** (📈): guarda cada cambio con su fecha, así se ve si
   un producto está subiendo o bajando.
 - **Gráficas**: "Gasto por desayuno" (con la marca del presupuesto) y

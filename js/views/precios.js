@@ -19,6 +19,7 @@ import {
   normalize,
   findPrice,
   estimateEvent,
+  desviacionMedia,
   savePrice,
   deletePrice,
   pricesToCsv,
@@ -72,6 +73,8 @@ function drawPrecios(root) {
       <button class="btn btn--ghost" id="capturarPrecios">📥 Capturar varios</button>
       <button class="btn btn--ghost" id="exportarCsv" ${conPrecio ? '' : 'disabled'}>📤 Exportar CSV</button>
     </div>
+
+    ${alertaDesviacion()}
 
     ${
       proximos.length
@@ -153,6 +156,26 @@ function drawPrecios(root) {
 }
 
 /* ---------- Piezas ---------- */
+
+/**
+ * Aviso cuando la media de gasto se separa de la media de presupuesto.
+ * Se repite aquí (además de en Gráficas) porque es donde se está trabajando.
+ */
+function alertaDesviacion() {
+  const d = desviacionMedia(store.state.events, store.state.prices, store.state.inventory);
+  if (d.nivel === 'vacio' || d.nivel === 'ok') return '';
+  const icono = d.arriba ? '📈' : '📉';
+  const titulo = d.arriba ? 'Gastas más de lo presupuestado' : 'Gastas menos de lo presupuestado';
+  return `
+    <div class="alerta alerta--${d.nivel}" role="status">
+      <span class="alerta__icon">${icono}</span>
+      <div>
+        <strong>${titulo}</strong>
+        <p>${esc(d.mensaje)}</p>
+        <a class="btn btn--ghost btn--sm" href="#/graficas">📊 Ver en gráficas</a>
+      </div>
+    </div>`;
+}
 
 /** Resumen de presupuesto de un desayuno (cálculo en vivo). */
 function budgetBlock(ev) {
