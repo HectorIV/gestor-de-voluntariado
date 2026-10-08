@@ -166,20 +166,20 @@ function rowHtml(p) {
     : '';
   return `
     <tr class="${missing ? 'row-low' : ''}">
-      <td>
+      <td data-label="Producto">
         <div class="cell-title">${esc(p.name)}</div>
         ${p.notes ? `<div class="cell-sub">${esc(p.notes)}</div>` : ''}
       </td>
-      <td><span class="tag">${esc(p.category)}</span></td>
-      <td class="num">
+      <td data-label="Categoría"><span class="tag">${esc(p.category)}</span></td>
+      <td class="num" data-label="Cantidad">
         <div class="qty">
           <button class="qty__btn" data-adjust="-1" data-id="${p.id}" title="Restar 1">−</button>
           <strong>${formatNumber(p.qty)} <small>${esc(p.unit || 'u.')}</small></strong>
           <button class="qty__btn" data-adjust="1" data-id="${p.id}" title="Sumar 1">＋</button>
         </div>
       </td>
-      <td class="num">${formatNumber(p.min || 0)}</td>
-      <td>${badge}${manual ? '<div class="cell-sub">a mano</div>' : ''}</td>
+      <td class="num" data-label="Mínimo">${formatNumber(p.min || 0)}</td>
+      <td data-label="Estado">${badge}${manual ? '<div class="cell-sub">a mano</div>' : ''}</td>
       <td class="row-actions">
         ${toggle}${reset}
         <button class="icon-btn" data-edit="${p.id}" title="Editar">✏️</button>
